@@ -206,7 +206,7 @@ function NeuralSphere({ scroll }: { scroll: number }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const timeRef     = useRef(0);
 
-  const count = 6000;
+  const count = 3500;
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -266,7 +266,7 @@ function GlassShell() {
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[1.15, 64, 64]} />
+      <sphereGeometry args={[1.15, 32, 32]} />
       {/* @ts-ignore */}
       <glassShellMaterial ref={materialRef} />
     </mesh>
@@ -304,7 +304,7 @@ function EnergyRings() {
           ref={refs[i]}
           rotation={[ring.tiltX, 0, ring.tiltZ]}
         >
-          <torusGeometry args={[ring.radius, ring.tube, 8, 160]} />
+          <torusGeometry args={[ring.radius, ring.tube, 8, 80]} />
           {/* @ts-ignore */}
           <pulseRingMaterial ref={matRefs[i]} args={[ring.color]} uColor-value={new THREE.Color(ring.color)} uOpacity-value={0.55} />
         </mesh>
@@ -460,6 +460,7 @@ function AICore() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+
   return (
     <>
       <ambientLight intensity={0.15} />
@@ -479,14 +480,21 @@ function AICore() {
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 export const HologramCore: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(true);
+  useEffect(() => {
+    const onVis = () => setIsVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
   return (
     <div className="w-full h-full min-h-[300px] md:min-h-[500px] relative flex items-center justify-center">
       {/* 3D Canvas */}
       <div className="absolute inset-0 z-10">
         <Canvas
           camera={{ position: [0, 0, 5.5], fov: 42 }}
-          gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
-          dpr={[1, 1.5]}
+          gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
+          dpr={[1, 1.2]}
+          frameloop={isVisible ? 'always' : 'never'}
         >
           <AICore />
         </Canvas>

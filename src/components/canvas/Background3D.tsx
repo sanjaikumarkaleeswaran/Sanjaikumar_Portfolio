@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
@@ -117,7 +117,7 @@ function StarField() {
   const ref = useRef<THREE.Points>(null);
   
   // Generate random cosmic points
-  const count = 600;
+  const count = 350;
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -199,24 +199,32 @@ function CinematicCameraController() {
 }
 
 export const Background3D: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const onVisibility = () => setIsVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
   return (
     <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#030014]">
-      {/* 3D Canvas Background */}
       <div className="w-full h-full absolute">
         <Canvas
           camera={{ position: [0, 0, 9], fov: 60 }}
-          gl={{ antialias: true, alpha: false }}
+          gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
+          dpr={[1, 1.2]}
+          frameloop={isVisible ? 'always' : 'never'}
           style={{ background: 'black' }}
         >
           <ambientLight intensity={0.4} />
-          
           <CinematicCameraController />
           <NebulaQuad />
           <StarField />
           <LivingSpaceGrid />
         </Canvas>
       </div>
-      
+
       {/* Fallback ambient gradients blending */}
       <div className="absolute inset-0 bg-radial-at-t from-transparent via-[#030014]/50 to-[#030014] mix-blend-multiply pointer-events-none" />
       <div className="absolute top-[-10%] left-[-10%] w-[55vw] h-[55vw] bg-cyber-purple/10 blur-[130px] rounded-full pointer-events-none" />

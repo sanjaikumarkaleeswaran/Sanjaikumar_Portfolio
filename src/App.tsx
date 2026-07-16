@@ -1,30 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cpu, AlertCircle, CheckCircle, Info, FileText } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-// Context & Canvas
+// Context (always needed)
 import { OSProvider, useOS } from './context/OSContext';
-import { Background3D } from './components/canvas/Background3D';
 
-// UI shells
+// Lightweight UI shells — load immediately
 import { Header } from './components/ui/Header';
 import { OSDock } from './components/ui/OSDock';
 import { OSWindow } from './components/ui/OSWindow';
-import { AIAssistant } from './components/ui/AIAssistant';
-import { TerminalWindow } from './components/ui/TerminalWindow';
 import { CustomCursor } from './components/ui/CustomCursor';
 import { CommandPalette } from './components/ui/CommandPalette';
-import { DeveloperOverlay } from './components/ui/DeveloperOverlay';
 
-// Content screens
-import { HeroDashboard } from './components/sections/HeroDashboard';
-import { AboutSpecs } from './components/sections/AboutSpecs';
-import { SkillsSection } from './components/sections/SkillsSection';
-import { ProjectsExplorer } from './components/sections/ProjectsExplorer';
-import { CareerChronology } from './components/sections/CareerChronology';
-import { ContactHub } from './components/sections/ContactHub';
-import { MetricsDashboard } from './components/sections/MetricsDashboard';
+// Heavy components — lazy loaded to split into async chunks
+const Background3D     = lazy(() => import('./components/canvas/Background3D').then(m => ({ default: m.Background3D })));
+const AIAssistant      = lazy(() => import('./components/ui/AIAssistant').then(m => ({ default: m.AIAssistant })));
+const TerminalWindow   = lazy(() => import('./components/ui/TerminalWindow').then(m => ({ default: m.TerminalWindow })));
+const DeveloperOverlay = lazy(() => import('./components/ui/DeveloperOverlay').then(m => ({ default: m.DeveloperOverlay })));
+const HeroDashboard    = lazy(() => import('./components/sections/HeroDashboard').then(m => ({ default: m.HeroDashboard })));
+const AboutSpecs       = lazy(() => import('./components/sections/AboutSpecs').then(m => ({ default: m.AboutSpecs })));
+const SkillsSection    = lazy(() => import('./components/sections/SkillsSection').then(m => ({ default: m.SkillsSection })));
+const ProjectsExplorer = lazy(() => import('./components/sections/ProjectsExplorer').then(m => ({ default: m.ProjectsExplorer })));
+const CareerChronology = lazy(() => import('./components/sections/CareerChronology').then(m => ({ default: m.CareerChronology })));
+const ContactHub       = lazy(() => import('./components/sections/ContactHub').then(m => ({ default: m.ContactHub })));
+const MetricsDashboard = lazy(() => import('./components/sections/MetricsDashboard').then(m => ({ default: m.MetricsDashboard })));
+
+// Minimal fallback for Suspense boundaries
+const SuspenseFallback = () => (
+  <div className="flex items-center justify-center h-full w-full min-h-[200px]">
+    <div className="w-4 h-4 border-2 border-cyber-cyan/40 border-t-cyber-cyan rounded-full animate-spin" />
+  </div>
+);
 
 function AppContent() {
   const { 
@@ -210,8 +217,10 @@ function AppContent() {
     <div className={`min-h-screen text-slate-100 font-sans relative overflow-x-hidden ${
       theme === 'matrix' ? 'selection:bg-cyber-green selection:text-black' : 'selection:bg-cyber-cyan selection:text-black'
     }`}>
-      {/* 3D Space grids background */}
-      <Background3D />
+      {/* 3D Space grids background — lazy loaded */}
+      <Suspense fallback={null}>
+        <Background3D />
+      </Suspense>
 
       {/* CRT scanline filters */}
       <div className="fixed inset-0 crt-overlay z-[99999] pointer-events-none opacity-20" />
@@ -420,7 +429,9 @@ function AppContent() {
                 <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2 border-b border-white/10 pb-2">
                   <span className="text-cyber-green">#</span> 04 // RECRUITMENT TRANSMIT NODE
                 </h2>
-                <ContactHub />
+                <Suspense fallback={<SuspenseFallback />}>
+                  <ContactHub />
+                </Suspense>
               </div>
             </motion.div>
           ) : (
@@ -433,10 +444,12 @@ function AppContent() {
                   exit={{ opacity: 0, y: -20 }}
                   className="w-full"
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <HeroDashboard 
                     setIsTerminalOpen={setIsTerminalOpen}
                     setActiveTab={setActiveTab}
                   />
+                </Suspense>
                 </motion.div>
               )}
 
@@ -448,7 +461,9 @@ function AppContent() {
                   isOpen={true}
                   onClose={() => setActiveWindow('hero')}
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <AboutSpecs />
+                </Suspense>
                 </OSWindow>
               )}
 
@@ -461,7 +476,9 @@ function AppContent() {
                   widthClass="max-w-[1000px]"
                   onClose={() => setActiveWindow('hero')}
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <SkillsSection />
+                </Suspense>
                 </OSWindow>
               )}
 
@@ -473,7 +490,9 @@ function AppContent() {
                   isOpen={true}
                   onClose={() => setActiveWindow('hero')}
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <ProjectsExplorer />
+                </Suspense>
                 </OSWindow>
               )}
 
@@ -487,7 +506,9 @@ function AppContent() {
                   widthClass="max-w-[700px]"
                   onClose={() => setActiveWindow('hero')}
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <MetricsDashboard />
+                </Suspense>
                 </OSWindow>
               )}
 
@@ -499,7 +520,9 @@ function AppContent() {
                   isOpen={true}
                   onClose={() => setActiveWindow('hero')}
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <CareerChronology />
+                </Suspense>
                 </OSWindow>
               )}
 
@@ -511,7 +534,9 @@ function AppContent() {
                   isOpen={true}
                   onClose={() => setActiveWindow('hero')}
                 >
+                <Suspense fallback={<SuspenseFallback />}>
                   <ContactHub />
+                </Suspense>
                 </OSWindow>
               )}
             </>
@@ -532,7 +557,9 @@ function AppContent() {
                 widthClass="max-w-[360px]"
                 heightClass="h-[380px]"
               >
-                <TerminalWindow />
+                <Suspense fallback={<SuspenseFallback />}>
+                  <TerminalWindow />
+                </Suspense>
               </OSWindow>
             </div>
           )}
@@ -550,7 +577,9 @@ function AppContent() {
                 widthClass="max-w-[360px]"
                 heightClass="h-[380px]"
               >
-                <AIAssistant />
+                <Suspense fallback={<SuspenseFallback />}>
+                  <AIAssistant />
+                </Suspense>
               </OSWindow>
             </div>
           )}
@@ -558,7 +587,11 @@ function AppContent() {
 
         {/* Developer Diagnostics Overlay */}
         <AnimatePresence>
-          {isDevOverlayOpen && <DeveloperOverlay />}
+          {isDevOverlayOpen && (
+            <Suspense fallback={null}>
+              <DeveloperOverlay />
+            </Suspense>
+          )}
         </AnimatePresence>
 
       </main>
