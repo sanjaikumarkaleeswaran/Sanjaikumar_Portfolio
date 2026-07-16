@@ -25,29 +25,23 @@ function Planet({ name, color, size, orbitRadius, orbitSpeed, yOffset = 0, moons
   // Keep track of moon positions to draw connecting lines
   const moonPositions = useRef<THREE.Vector3[]>(moons.map(() => new THREE.Vector3()));
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!planetRef.current) return;
-    const time = state.clock.getElapsedTime();
-    
-    // Slow down rotation/orbit speed when hovered or focused
+    timeRef.current += delta;
+    const time = timeRef.current;
     const speedMultiplier = (hovered || isFocused) ? 0.08 : 1.0;
     const angle = time * orbitSpeed * speedMultiplier;
-    
     const x = Math.sin(angle) * orbitRadius;
     const z = Math.cos(angle) * orbitRadius;
     const y = Math.sin(time * 0.8 + orbitRadius) * 0.4 + yOffset;
-
     planetRef.current.position.set(x, y, z);
-
-    // Update moon positions locally relative to planet
     moons.forEach((_, idx) => {
       const moonRadius = size * 1.8 + idx * 0.18;
       const moonSpeed = 1.8 + idx * 0.7;
       const moonAngle = time * moonSpeed * speedMultiplier;
-      
       const mx = Math.sin(moonAngle) * moonRadius;
       const mz = Math.cos(moonAngle) * moonRadius;
-      
       if (moonPositions.current[idx]) {
         moonPositions.current[idx].set(mx, 0, mz);
       }
@@ -151,12 +145,12 @@ function Moon({ radius, speed, color, parentHovered, name }: { radius: number; s
   const moonRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!moonRef.current) return;
-    const time = state.clock.getElapsedTime();
+    timeRef.current += delta;
     const speedMult = parentHovered ? 0.08 : 1.0;
-    const angle = time * speed * speedMult;
-    
+    const angle = timeRef.current * speed * speedMult;
     moonRef.current.position.x = Math.sin(angle) * radius;
     moonRef.current.position.z = Math.cos(angle) * radius;
   });
@@ -189,18 +183,17 @@ interface TechCameraCtrlProps {
 }
 
 function TechCameraController({ focusedPlanet, planetsData }: TechCameraCtrlProps) {
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((state, delta) => {
+    timeRef.current += delta;
     let targetPos = new THREE.Vector3(0, 5, 8);
     let targetLook = new THREE.Vector3(0, 0, 0);
-
     if (focusedPlanet) {
-      // Find planet data
       const data = planetsData.find((p) => p.name === focusedPlanet);
       if (data) {
-        const time = state.clock.getElapsedTime();
+        const time = timeRef.current;
         const speedMultiplier = 0.08;
         const angle = time * data.orbitSpeed * speedMultiplier;
-        
         const px = Math.sin(angle) * data.orbitRadius;
         const pz = Math.cos(angle) * data.orbitRadius;
         const py = Math.sin(time * 0.8 + data.orbitRadius) * 0.4 + data.yOffset;

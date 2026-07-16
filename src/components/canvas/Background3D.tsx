@@ -95,10 +95,12 @@ extend({ CosmicNebulaMaterial });
 
 function NebulaQuad() {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const timeRef = useRef(0);
 
-  useFrame((state) => {
+  useFrame((_, delta) => {
+    timeRef.current += delta;
     if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+      materialRef.current.uniforms.uTime.value = timeRef.current;
     }
   });
 
@@ -126,11 +128,12 @@ function StarField() {
     return arr;
   }, []);
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!ref.current) return;
-    const t = state.clock.getElapsedTime();
-    ref.current.rotation.y = t * 0.008;
-    ref.current.rotation.x = t * 0.003;
+    timeRef.current += delta;
+    ref.current.rotation.y = timeRef.current * 0.008;
+    ref.current.rotation.x = timeRef.current * 0.003;
   });
 
   return (
@@ -152,15 +155,13 @@ function StarField() {
 function LivingSpaceGrid() {
   const gridRef = useRef<THREE.GridHelper>(null);
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
     if (!gridRef.current) return;
-    const time = state.clock.getElapsedTime();
-    
-    // Smooth breathing rotation cycles
+    timeRef.current += delta;
+    const time = timeRef.current;
     gridRef.current.rotation.x = Math.sin(time * 0.15) * 0.06 + 1.35;
     gridRef.current.rotation.y = Math.cos(time * 0.08) * 0.04;
-    
-    // Pulsing breathing grid intensity
     const material = gridRef.current.material as THREE.LineBasicMaterial;
     if (material) {
       material.opacity = 0.05 + (Math.sin(time * 0.8) * 0.03);
@@ -181,19 +182,16 @@ function LivingSpaceGrid() {
 
 // Cinematic Camera Controller component reacting to scroll + mouse movement
 function CinematicCameraController() {
-  useFrame((state) => {
+  const timeRef = useRef(0);
+  useFrame((state, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     const targetX = state.pointer.x * 1.5;
     const targetY = state.pointer.y * 1.2;
-    
-    // Slow drifting sways over time
-    const driftY = Math.sin(state.clock.getElapsedTime() * 0.35) * 0.3;
-    const driftX = Math.cos(state.clock.getElapsedTime() * 0.25) * 0.3;
-
-    // Smoothly interpolate camera position using LERP
+    const driftY = Math.sin(t * 0.35) * 0.3;
+    const driftX = Math.cos(t * 0.25) * 0.3;
     state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX + driftX, 0.05);
     state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY + driftY, 0.05);
-    
-    // Slowly orient lookAt to scene center
     state.camera.lookAt(0, 0, 0);
   });
 

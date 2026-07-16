@@ -204,6 +204,7 @@ extend({ PulseRingMaterial });
 function NeuralSphere({ scroll }: { scroll: number }) {
   const pointsRef   = useRef<THREE.Points>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const timeRef     = useRef(0);
 
   const count = 6000;
   const positions = useMemo(() => {
@@ -219,17 +220,18 @@ function NeuralSphere({ scroll }: { scroll: number }) {
     return arr;
   }, []);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value   = t;
       materialRef.current.uniforms.uScroll.value = scroll;
-      materialRef.current.uniforms.uMouse.value.set(state.pointer.x, state.pointer.y);
+      materialRef.current.uniforms.uMouse.value.set(_.pointer.x, _.pointer.y);
     }
     if (pointsRef.current) {
       pointsRef.current.rotation.y += 0.0025;
       pointsRef.current.rotation.x = THREE.MathUtils.lerp(
-        pointsRef.current.rotation.x, state.pointer.y * -0.18, 0.04
+        pointsRef.current.rotation.x, _.pointer.y * -0.18, 0.04
       );
     }
   });
@@ -249,11 +251,12 @@ function NeuralSphere({ scroll }: { scroll: number }) {
 function GlassShell() {
   const meshRef     = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const timeRef     = useRef(0);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  useFrame((state, delta) => {
+    timeRef.current += delta;
     if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = t;
+      materialRef.current.uniforms.uTime.value = timeRef.current;
       materialRef.current.uniforms.uMouse.value.set(state.pointer.x, state.pointer.y);
     }
     if (meshRef.current) {
@@ -281,8 +284,10 @@ function EnergyRings() {
   const refs = rings.map(() => useRef<THREE.Mesh>(null));
   const matRefs = rings.map(() => useRef<THREE.ShaderMaterial>(null));
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     refs.forEach((ref, i) => {
       if (ref.current) ref.current.rotation.z = t * rings[i].speed;
     });
@@ -323,8 +328,10 @@ function SatelliteNodes() {
   // Individual satellite refs for glow animation
   const lightRefs = satellites.map(() => useRef<THREE.PointLight>(null));
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     if (groupRef.current) {
       groupRef.current.rotation.y = t * 0.12;
     }
@@ -381,8 +388,10 @@ function EnergyPulseWaves() {
   const matRefs   = [0, 1, 2].map(() => useRef<THREE.ShaderMaterial>(null));
   const phases    = [0, 2.1, 4.2];
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     pulseRefs.forEach((ref, i) => {
       if (ref.current && matRefs[i].current) {
         const progress = ((t * 0.35 + phases[i]) % 1.0);
@@ -412,8 +421,10 @@ function CoreGlow() {
   const meshRef     = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     if (materialRef.current) {
       materialRef.current.opacity = 0.06 + Math.sin(t * 1.4) * 0.025;
     }
