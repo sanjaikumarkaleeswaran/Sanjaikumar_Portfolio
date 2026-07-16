@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Home, User, Code, Folder, BookOpen, Mail, Terminal, Sparkles, FileCode 
+  Home, User, Code, Folder, BookOpen, Mail, Terminal, Sparkles, BarChart2
 } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
@@ -72,14 +72,14 @@ export const OSDock: React.FC<{
       isActive: activeTab === 'projects'
     },
     {
-      id: 'explorer',
-      label: 'Code Explorer',
-      icon: <FileCode size={16} />,
+      id: 'metrics',
+      label: 'Metrics',
+      icon: <BarChart2 size={16} />,
       action: () => {
-        setActiveWindow('explorer');
-        setActiveTab('explorer');
+        setActiveWindow('metrics');
+        setActiveTab('metrics');
       },
-      isActive: activeTab === 'explorer'
+      isActive: activeTab === 'metrics'
     },
     {
       id: 'timeline',

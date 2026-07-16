@@ -27,6 +27,8 @@ interface OSContextProps {
   currentChapter: string;
   volume: number;
   setVolume: (v: number) => void;
+  hasBooted: boolean;
+  setHasBooted: (b: boolean) => void;
 }
 
 const OSContext = createContext<OSContextProps | undefined>(undefined);
@@ -47,6 +49,7 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [sysUptime, setSysUptime] = useState('00:00:00');
   const [isRecruiterMode, setIsRecruiterModeState] = useState(false);
   const [currentChapter, setCurrentChapter] = useState('Chapter 1: Boot Sequence');
+  const [hasBooted, setHasBooted] = useState(false);
 
   // Web Audio Context Reference
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -314,27 +317,63 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           oscNode.start(now + idx * 0.08);
           oscNode.stop(now + 0.5 + idx * 0.08);
         });
-      } else if (type === 'boot') {
+      } else if (type === 'boot-poweron') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(90, now);
-        osc.frequency.exponentialRampToValueAtTime(330, now + 0.7);
-        gain.gain.setValueAtTime(0.1 * volScale, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+        osc.frequency.setValueAtTime(55, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 1.2);
+        gain.gain.setValueAtTime(0.04 * volScale, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
         osc.start(now);
-        osc.stop(now + 0.9);
+        osc.stop(now + 1.2);
+      } else if (type === 'boot-init') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(330, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+        gain.gain.setValueAtTime(0.02 * volScale, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'boot-loading') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(440, now + 0.8);
+        gain.gain.setValueAtTime(0.015 * volScale, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        osc.start(now);
+        osc.stop(now + 0.8);
 
-        const notes = [440.00, 554.37, 659.25, 880.00];
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(277.18, now);
+        osc2.frequency.linearRampToValueAtTime(554.37, now + 0.8);
+        gain2.gain.setValueAtTime(0.01 * volScale, now);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        osc2.start(now);
+        osc2.stop(now + 0.8);
+      } else if (type === 'boot-online') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(659.25, now);
+        osc.frequency.setValueAtTime(880, now + 0.08);
+        gain.gain.setValueAtTime(0.02 * volScale, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'boot-success') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, idx) => {
           const oscNode = ctx.createOscillator();
           const gainNode = ctx.createGain();
           oscNode.connect(gainNode);
           gainNode.connect(ctx.destination);
           oscNode.type = 'sine';
-          oscNode.frequency.setValueAtTime(freq, now + 0.25 + idx * 0.06);
-          gainNode.gain.setValueAtTime(0.012 * volScale, now + 0.25 + idx * 0.06);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.55 + idx * 0.06);
-          oscNode.start(now + 0.25 + idx * 0.06);
-          oscNode.stop(now + 0.6 + idx * 0.06);
+          oscNode.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gainNode.gain.setValueAtTime(0.015 * volScale, now + idx * 0.08);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.35 + idx * 0.08);
+          oscNode.start(now + idx * 0.08);
+          oscNode.stop(now + 0.4 + idx * 0.08);
         });
       }
     } catch (e) {
@@ -344,7 +383,7 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   // Ambient procedural background audio
   useEffect(() => {
-    if (isMuted) {
+    if (isMuted || !hasBooted) {
       if (ambientOscRef.current) {
         try {
           ambientOscRef.current.stop();
@@ -395,7 +434,7 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         } catch (e) {}
       }
     };
-  }, [isMuted]);
+  }, [isMuted, hasBooted]);
 
   // Dynamically update ambient volume level
   useEffect(() => {
@@ -491,7 +530,9 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setIsRecruiterMode,
         currentChapter,
         volume,
-        setVolume
+        setVolume,
+        hasBooted,
+        setHasBooted
       }}
     >
       {children}

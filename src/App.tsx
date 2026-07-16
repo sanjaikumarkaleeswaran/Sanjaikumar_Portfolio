@@ -24,7 +24,6 @@ import { SkillsSection } from './components/sections/SkillsSection';
 import { ProjectsExplorer } from './components/sections/ProjectsExplorer';
 import { CareerChronology } from './components/sections/CareerChronology';
 import { ContactHub } from './components/sections/ContactHub';
-import { ProjectCodeExplorer } from './components/sections/ProjectCodeExplorer';
 import { MetricsDashboard } from './components/sections/MetricsDashboard';
 
 function AppContent() {
@@ -37,7 +36,8 @@ function AppContent() {
     playAudioCue,
     addNotification,
     isRecruiterMode,
-    setIsRecruiterMode
+    setIsRecruiterMode,
+    setHasBooted
   } = useOS();
 
   // OS Window Toggles
@@ -63,58 +63,80 @@ function AppContent() {
 
   // Boot sequence loader states
   const [isBooting, setIsBooting] = useState(true);
+  const [showBootContainer, setShowBootContainer] = useState(false);
   const [bootProgress, setBootProgress] = useState(0);
   const [bootLogs, setBootLogs] = useState<string[]>([]);
 
-  const bootSequence = [
-    'SYSTEM POWER: ONLINE [100%]',
-    'BOOT INITIALIZATION: VERIFYING INTEGRITY...',
-    'AI CORE ONLINE: LOADING DEEPMIND DIALOG MODELS...',
-    'NEURAL NETWORK CONNECTED: TECH GALAXY ORBITS STABLE...',
-    'DIGITAL TWIN ACTIVATED: RENDERING PROCEDURAL POINT CLOUD...',
-    'MISSION CONTROL READY: DISPATCHING CENTRAL HUD STREAMS...',
-    'SYSTEM INITIALIZATION COMPLETE.'
-  ];
-
-  // Boot Loader progress simulator
+  // Timed Choreographed Boot Sequence
   useEffect(() => {
     if (!isBooting) return;
-    
-    let logIdx = 0;
-    const interval = setInterval(() => {
-      setBootProgress((prev) => {
-        const jump = Math.floor(Math.random() * 12) + 6;
-        const next = prev + jump;
-        
-        if (next >= 100) {
-          clearInterval(interval);
-          setBootLogs(prevLogs => [...prevLogs, 'SYSTEM READY. INTERFACE BOOT SUCCESS.']);
-          
-          setTimeout(() => {
-            setIsBooting(false);
-            // Delight the recruiter on entrance
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-          }, 800);
-          return 100;
-        }
 
-        const calculatedIndex = Math.floor((next / 100) * bootSequence.length);
-        if (calculatedIndex > logIdx && calculatedIndex < bootSequence.length) {
-          setBootLogs(prevLogs => [...prevLogs, bootSequence[logIdx]]);
-          logIdx = calculatedIndex;
-          playAudioCue('tap'); // Soft tick for every log loaded
-        } else {
-          if (Math.random() < 0.2) {
-            playAudioCue('dockHover'); // Random low-frequency ticks
-          }
-        }
+    // 0ms: solid black screen
+    // 600ms: fade in the glow & borders of the boot window
+    const t1 = setTimeout(() => {
+      setShowBootContainer(true);
+    }, 600);
 
-        return next;
-      });
-    }, 120);
+    // 1200ms: Power On sound + log. Progress = 15%
+    const t2 = setTimeout(() => {
+      playAudioCue('boot-poweron');
+      setBootProgress(15);
+      setBootLogs(prev => [...prev, 'SYSTEM POWER: ONLINE [100%]']);
+    }, 1200);
 
-    return () => clearInterval(interval);
-  }, [isBooting]);
+    // 2000ms: System Initializing + log. Progress = 35%
+    const t3 = setTimeout(() => {
+      playAudioCue('boot-init');
+      setBootProgress(35);
+      setBootLogs(prev => [...prev, 'BOOT INITIALIZATION: VERIFYING INTEGRITY...']);
+    }, 2000);
+
+    // 2800ms: AI Core Loading + log. Progress = 55%
+    const t4 = setTimeout(() => {
+      playAudioCue('boot-loading');
+      setBootProgress(55);
+      setBootLogs(prev => [...prev, 'AI CORE ONLINE: LOADING DEEPMIND DIALOG MODELS...']);
+    }, 2800);
+
+    // 3600ms: Satellite orbit connection + log. Progress = 75%
+    const t5 = setTimeout(() => {
+      playAudioCue('boot-init');
+      setBootProgress(75);
+      setBootLogs(prev => [...prev, 'NEURAL NETWORK CONNECTED: TECH GALAXY ORBITS STABLE...']);
+    }, 3600);
+
+    // 4400ms: Mission Control Online + log. Progress = 90%
+    const t6 = setTimeout(() => {
+      playAudioCue('boot-online');
+      setBootProgress(90);
+      setBootLogs(prev => [...prev, 'MISSION CONTROL READY: DISPATCHING CENTRAL HUD STREAMS...']);
+    }, 4400);
+
+    // 5200ms: Success chime + completion log. Progress = 100%
+    const t7 = setTimeout(() => {
+      playAudioCue('boot-success');
+      setBootProgress(100);
+      setBootLogs(prev => [...prev, 'SYSTEM READY. INTERFACE BOOT SUCCESS.']);
+    }, 5200);
+
+    // 6000ms: Transition to workspace
+    const t8 = setTimeout(() => {
+      setIsBooting(false);
+      setHasBooted(true);
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    }, 6000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+      clearTimeout(t5);
+      clearTimeout(t6);
+      clearTimeout(t7);
+      clearTimeout(t8);
+    };
+  }, [isBooting, playAudioCue, setHasBooted]);
 
   // Synchronize ActiveTab with ActiveWindow
   useEffect(() => {
@@ -153,15 +175,6 @@ function AppContent() {
     }
   }, [isAICopilotOpen, isBooting]);
 
-  // Play boot sound immediately after booting overlay vanishes
-  useEffect(() => {
-    if (!isBooting) {
-      setTimeout(() => {
-        playAudioCue('boot');
-      }, 200);
-    }
-  }, [isBooting]);
-
   // Konami Code Event Listener Easter Egg
   useEffect(() => {
     const konamiCode = [
@@ -175,7 +188,7 @@ function AppContent() {
       if (e.key === konamiCode[konamiIndex]) {
         konamiIndex++;
         if (konamiIndex === konamiCode.length) {
-          playAudioCue('boot');
+          playAudioCue('boot-success');
           confetti({
             particleCount: 220,
             spread: 120,
@@ -209,40 +222,78 @@ function AppContent() {
       {/* BIOS System Boot Loader Overlay */}
       <AnimatePresence>
         {isBooting && (
-          <motion.div 
-            exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.05, filter: 'blur(12px)' }}
+            transition={{ duration: 0.7, ease: 'easeInOut' }}
             className="fixed inset-0 bg-[#02000a] z-[99999] flex items-center justify-center p-4 font-mono select-none"
           >
-            <div className="w-full max-w-[550px] border border-cyber-cyan/25 rounded-2xl p-6 bg-black/85 backdrop-blur-xl shadow-[0_0_50px_rgba(0,240,255,0.15)] flex flex-col justify-between h-[360px]">
-              
-              <div className="flex items-center gap-2 text-cyber-cyan border-b border-white/10 pb-2">
-                <Cpu className="animate-spin text-cyber-cyan" size={15} />
-                <span className="text-[11px] font-bold uppercase tracking-widest">BIOS_NEURAL_BOOTLOADER_v1.1</span>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto my-4 text-[9px] text-slate-400 space-y-1.5 custom-scroll">
-                <div>[SYSTEM] Initiating bootstrap logs...</div>
-                {bootLogs.map((log, index) => (
-                  <div key={index} className="text-cyber-green select-text font-bold">✓ {log}</div>
-                ))}
-              </div>
-
-              {/* Loader progress */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[10px] text-cyber-cyan">
-                  <span>BOOTING DATA PROTOCOLS</span>
-                  <span className="font-bold">{bootProgress}%</span>
-                </div>
-                <div className="h-1.5 bg-slate-900 border border-white/5 rounded-full overflow-hidden p-[1px]">
-                  <motion.div 
-                    style={{ width: `${bootProgress}%` }}
-                    className="h-full rounded-full bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta shadow-[0_0_10px_rgba(0,240,255,0.6)]"
-                  />
-                </div>
-              </div>
-
+            {/* Ambient radial glow that pulses during boot */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: showBootContainer ? [0.3, 0.6, 0.3] : 0, scale: showBootContainer ? 1 : 0.5 }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-[600px] h-[600px] rounded-full"
+                style={{ background: 'radial-gradient(ellipse, rgba(0,240,255,0.08) 0%, transparent 70%)' }}
+              />
             </div>
+
+            <AnimatePresence>
+              {showBootContainer && (
+                <motion.div
+                  initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full max-w-[580px] border border-cyber-cyan/30 rounded-2xl p-6 bg-black/90 backdrop-blur-xl shadow-[0_0_80px_rgba(0,240,255,0.12),0_0_0_1px_rgba(0,240,255,0.05)] flex flex-col justify-between h-[400px] relative overflow-hidden"
+                >
+                  {/* Decorative corner accents */}
+                  <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyber-cyan/40 rounded-tl-2xl pointer-events-none" />
+                  <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyber-cyan/40 rounded-tr-2xl pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyber-purple/30 rounded-bl-2xl pointer-events-none" />
+                  <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyber-purple/30 rounded-br-2xl pointer-events-none" />
+
+                  <div className="flex items-center gap-3 text-cyber-cyan border-b border-white/10 pb-3">
+                    <Cpu className="animate-spin text-cyber-cyan" size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em]">BIOS_NEURAL_BOOTLOADER_v2.0</span>
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyber-green animate-pulse" />
+                      <span className="text-[8px] text-cyber-green uppercase tracking-widest">LIVE</span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto my-4 text-[9px] text-slate-500 space-y-2 custom-scroll pr-1">
+                    <div className="text-slate-600">[SYSTEM] Initiating neural bootstrap sequence...</div>
+                    {bootLogs.map((log, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-cyber-green font-bold flex items-center gap-2"
+                      >
+                        <span className="text-cyber-cyan opacity-60">›</span> {log}
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between text-[9px] text-cyber-cyan/70 uppercase tracking-widest">
+                      <span>QUANTUM CORE INITIALIZATION</span>
+                      <span className="font-bold text-cyber-cyan tabular-nums">{bootProgress}%</span>
+                    </div>
+                    <div className="h-1 bg-slate-900/80 border border-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        animate={{ width: `${bootProgress}%` }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        className="h-full rounded-full bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta shadow-[0_0_12px_rgba(0,240,255,0.7)]"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
@@ -426,18 +477,6 @@ function AppContent() {
                 </OSWindow>
               )}
 
-              {activeTab === 'explorer' && (
-                <OSWindow
-                  key="window-explorer"
-                  id="explorer"
-                  title="vs_code_project_explorer.sh"
-                  isOpen={true}
-                  widthClass="max-w-[950px]"
-                  onClose={() => setActiveWindow('hero')}
-                >
-                  <ProjectCodeExplorer />
-                </OSWindow>
-              )}
 
               {activeTab === 'metrics' && (
                 <OSWindow
