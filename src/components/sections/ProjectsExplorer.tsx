@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { FolderGit2, ExternalLink, ShieldAlert, Cpu, Award, X, Activity, Server, FileText } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
+import { PROJECT_ARCHITECTURES } from '../../data/projectArchitecture';
+import type { ArchNode } from '../../data/projectArchitecture';
 
 interface Project {
   id: string;
@@ -92,6 +94,17 @@ export const ProjectsExplorer: React.FC = () => {
   const { playAudioCue } = useOS();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [activeModalTab, setActiveModalTab] = useState<'specs' | 'diagram' | 'metrics'>('specs');
+  const [selectedNode, setSelectedNode] = useState<ArchNode | null>(null);
+
+  // Sync selectedNode when selectedProject or activeModalTab changes
+  useEffect(() => {
+    if (selectedProject) {
+      const nodes = PROJECT_ARCHITECTURES[selectedProject.id] || [];
+      setSelectedNode(nodes[0] || null);
+    } else {
+      setSelectedNode(null);
+    }
+  }, [selectedProject, activeModalTab]);
 
   const projects: Project[] = [
     {
@@ -287,7 +300,7 @@ export const ProjectsExplorer: React.FC = () => {
                     </motion.div>
                   )}
 
-                  {/* Tab 2: System Architecture Diagram (Custom Interactive API simulation) */}
+                  {/* Tab 2: System Architecture Diagram (Interactive Component flow & Spec lookup) */}
                   {activeModalTab === 'diagram' && (
                     <motion.div
                       key="diagram"
@@ -296,29 +309,83 @@ export const ProjectsExplorer: React.FC = () => {
                       exit={{ opacity: 0, x: -10 }}
                       className="space-y-4"
                     >
-                      <div className="p-4 rounded-xl border border-white/5 bg-slate-900/30 flex flex-col items-center justify-center space-y-4 min-h-[180px]">
-                        <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// INTERNODE API FLOW DIAGRAM</span>
-                        
-                        <div className="flex flex-wrap items-center justify-center gap-3 w-full max-w-md relative">
-                          {selectedProject.diagramNodes.map((nodeName, index) => (
-                            <React.Fragment key={index}>
-                              {index > 0 && (
-                                <div className="flex items-center justify-center relative w-6 h-4">
-                                  {/* Animated dot flow */}
-                                  <div className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping absolute" />
-                                  <div className="w-full h-[1px] bg-cyber-cyan/30" />
-                                </div>
-                              )}
-                              <div className="px-2.5 py-1.5 rounded border border-cyber-purple/35 bg-black/60 text-[9px] font-mono text-slate-200 text-center shadow-[0_0_8px_rgba(157,78,221,0.15)]">
-                                {nodeName}
-                              </div>
-                            </React.Fragment>
-                          ))}
+                      <style>{`
+                        @keyframes flowPulse {
+                          0% { left: 0%; opacity: 0; }
+                          10% { opacity: 1; }
+                          90% { opacity: 1; }
+                          100% { left: 100%; opacity: 0; }
+                        }
+                      `}</style>
+                      <div className="p-4 rounded-xl border border-white/5 bg-slate-950/80 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// INTERACTIVE ARCHITECTURE EXPLORER</span>
+                          <span className="text-[7px] text-cyber-cyan animate-pulse">● CLICK NODES FOR SPECIFICATION LOOKUP</span>
                         </div>
 
-                        <p className="text-[9px] text-slate-500 text-center leading-relaxed">
-                          Automated context state mapping propagates data packages through containerized micro-routing pipelines in secure node loops.
-                        </p>
+                        {/* Interactive flow chart row */}
+                        <div className="flex items-center justify-around gap-2 py-4 relative bg-black/40 rounded-lg border border-white/5 overflow-hidden min-h-[70px]">
+                          {/* Pulsing request flow grid connectors background */}
+                          <div className="absolute inset-x-4 h-[1px] bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta opacity-25" />
+                          <div 
+                            className="absolute h-[2px] bg-cyber-cyan w-24" 
+                            style={{ 
+                              animationName: 'flowPulse',
+                              animationDuration: '3.5s',
+                              animationIterationCount: 'infinite',
+                              animationTimingFunction: 'linear',
+                              boxShadow: '0 0 8px var(--color-cyber-cyan)'
+                            }} 
+                          />
+
+                          {(PROJECT_ARCHITECTURES[selectedProject.id] || []).map((node) => {
+                            const isNodeSelected = selectedNode?.id === node.id;
+                            return (
+                              <button
+                                key={node.id}
+                                onClick={(e) => {
+                                  const pan = (e.clientX / window.innerWidth) * 2 - 1;
+                                  playAudioCue('click', pan);
+                                  setSelectedNode(node);
+                                }}
+                                className={`relative z-10 px-3 py-2 rounded-lg border font-mono text-[9px] text-center transition-all cursor-pointer select-none ${
+                                  isNodeSelected
+                                    ? 'bg-cyber-purple/10 border-cyber-purple text-white shadow-[0_0_12px_rgba(157,78,221,0.3)] scale-105'
+                                    : 'bg-slate-900/90 border-white/10 text-slate-400 hover:border-cyber-cyan/50 hover:text-slate-200'
+                                }`}
+                              >
+                                <div className="text-[7px] text-slate-500 uppercase font-bold mb-0.5">{node.role}</div>
+                                <div className="font-semibold">{node.name}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Node details lookup board */}
+                        {selectedNode && (
+                          <motion.div 
+                            key={selectedNode.id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4.5 rounded-lg border border-white/5 bg-slate-950/90 text-[10px] leading-relaxed text-slate-300 font-mono"
+                          >
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-[7px] text-cyber-cyan uppercase font-bold tracking-wider">[COMPONENT ROLE: {selectedNode.role}]</span>
+                                <h4 className="text-slate-100 font-bold text-[11px] mt-0.5">{selectedNode.name}</h4>
+                              </div>
+                              <p><strong className="text-slate-200">Purpose:</strong> {selectedNode.purpose}</p>
+                              <p><strong className="text-slate-200">Tech Stack:</strong> <code className="text-cyber-cyan bg-white/5 px-1 py-0.5 rounded">{selectedNode.tech}</code></p>
+                              <p><strong className="text-slate-200">Why Chosen:</strong> {selectedNode.reason}</p>
+                            </div>
+                            <div className="space-y-2 border-t md:border-t-0 md:border-l border-white/5 pt-2 md:pt-0 md:pl-4">
+                              <p><strong className="text-cyber-magenta font-semibold">Trade-offs:</strong> {selectedNode.tradeoffs}</p>
+                              <p><strong className="text-cyber-green font-semibold">Performance:</strong> {selectedNode.performance}</p>
+                              <p><strong className="text-yellow-500 font-semibold">Security:</strong> {selectedNode.security}</p>
+                              <p><strong className="text-purple-400 font-semibold">Scaling Strategy:</strong> {selectedNode.scale}</p>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
                     </motion.div>
                   )}

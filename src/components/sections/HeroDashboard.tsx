@@ -60,14 +60,77 @@ export const HeroDashboard: React.FC<{
     return () => clearInterval(clockTimer);
   }, []);
 
-  // Mock GitHub active activity feed logs
-  const gitLogs = [
-    'feat(webgl): compile custom cosmic nebula shader [2m ago]',
-    'docs(specs): update developer specs telemetry [10m ago]',
-    'fix(dock): stabilize audio sound nodes [1h ago]',
-    'feat(twin): render point-cloud face coordinates [4h ago]',
-    'refactor(os): optimize component bundles [1d ago]'
-  ];
+  // Live GitHub active activity feed logs state
+  const [gitLogs, setGitLogs] = useState<string[]>([]);
+  const [isLoadingGit, setIsLoadingGit] = useState(true);
+
+  useEffect(() => {
+    const fetchGithubLogs = async () => {
+      const cacheKey = 'sanjai_github_logs';
+      const cacheTimeKey = 'sanjai_github_timestamp';
+      const cacheExpiry = 10 * 60 * 1000; // 10 minutes
+
+      const cached = localStorage.getItem(cacheKey);
+      const cachedTime = localStorage.getItem(cacheTimeKey);
+
+      if (cached && cachedTime && (Date.now() - parseInt(cachedTime, 10) < cacheExpiry)) {
+        setGitLogs(JSON.parse(cached));
+        setIsLoadingGit(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('https://api.github.com/users/sanjaikumarkaleeswaran/events');
+        if (!res.ok) throw new Error('API request failed');
+        const data = await res.json();
+        
+        // Filter push events
+        const pushEvents = data.filter((e: any) => e.type === 'PushEvent');
+        
+        const logs = pushEvents.slice(0, 5).map((e: any) => {
+          const commitMsg = e.payload?.commits?.[0]?.message || 'Updated project directory';
+          const created = new Date(e.created_at);
+          const diffMs = Math.max(0, Date.now() - created.getTime());
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMins / 60);
+          let ageStr = 'now';
+          if (diffMins < 60) {
+            ageStr = `${diffMins || 1}m ago`;
+          } else if (diffHours < 24) {
+            ageStr = `${diffHours}h ago`;
+          } else {
+            ageStr = `${Math.floor(diffHours / 24) || 1}d ago`;
+          }
+          return `${commitMsg} [${ageStr}]`;
+        });
+
+        if (logs.length === 0) {
+          throw new Error('No push logs available');
+        }
+
+        localStorage.setItem(cacheKey, JSON.stringify(logs));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+        setGitLogs(logs);
+      } catch (err) {
+        // Fallback to cache if exists, or hardcoded logs
+        if (cached) {
+          setGitLogs(JSON.parse(cached));
+        } else {
+          setGitLogs([
+            'feat(webgl): compile custom cosmic nebula shader [2m ago]',
+            'docs(specs): update developer specs telemetry [10m ago]',
+            'fix(dock): stabilize audio sound nodes [1h ago]',
+            'feat(twin): render point-cloud face coordinates [4h ago]',
+            'refactor(os): optimize component bundles [1d ago]'
+          ]);
+        }
+      } finally {
+        setIsLoadingGit(false);
+      }
+    };
+
+    fetchGithubLogs();
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-6 font-mono">
@@ -210,12 +273,21 @@ export const HeroDashboard: React.FC<{
             <span>GitHub Active Event Logs</span>
           </div>
           <div className="space-y-1 max-h-[85px] overflow-y-auto text-[9px] text-slate-400 select-none custom-scroll">
-            {gitLogs.map((log, idx) => (
-              <div key={idx} className="flex gap-2 items-center font-mono py-0.5 hover:text-white transition-colors">
-                <span className="text-cyber-cyan">&gt;</span>
-                <span className="truncate">{log}</span>
-              </div>
-            ))}
+            {isLoadingGit ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="flex gap-2 items-center py-0.5 animate-pulse">
+                  <span className="text-cyber-cyan/40">&gt;</span>
+                  <div className="h-2.5 bg-white/5 border border-white/5 rounded w-[85%]" />
+                </div>
+              ))
+            ) : (
+              gitLogs.map((log, idx) => (
+                <div key={idx} className="flex gap-2 items-center font-mono py-0.5 hover:text-white transition-colors">
+                  <span className="text-cyber-cyan">&gt;</span>
+                  <span className="truncate">{log}</span>
+                </div>
+              ))
+            )}
           </div>
         </motion.div>
 

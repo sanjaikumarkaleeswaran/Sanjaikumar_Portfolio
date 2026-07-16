@@ -15,6 +15,7 @@ import { AIAssistant } from './components/ui/AIAssistant';
 import { TerminalWindow } from './components/ui/TerminalWindow';
 import { CustomCursor } from './components/ui/CustomCursor';
 import { CommandPalette } from './components/ui/CommandPalette';
+import { DeveloperOverlay } from './components/ui/DeveloperOverlay';
 
 // Content screens
 import { HeroDashboard } from './components/sections/HeroDashboard';
@@ -23,6 +24,8 @@ import { SkillsSection } from './components/sections/SkillsSection';
 import { ProjectsExplorer } from './components/sections/ProjectsExplorer';
 import { CareerChronology } from './components/sections/CareerChronology';
 import { ContactHub } from './components/sections/ContactHub';
+import { ProjectCodeExplorer } from './components/sections/ProjectCodeExplorer';
+import { MetricsDashboard } from './components/sections/MetricsDashboard';
 
 function AppContent() {
   const { 
@@ -40,9 +43,23 @@ function AppContent() {
   // OS Window Toggles
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isAICopilotOpen, setIsAICopilotOpen] = useState(false);
+  const [isDevOverlayOpen, setIsDevOverlayOpen] = useState(false);
   
   // Tab alignment inside Dock
   const [activeTab, setActiveTab] = useState<string>('hero');
+
+  // Capture Developer Mode Shortcut (Ctrl + Shift + D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        setIsDevOverlayOpen(prev => !prev);
+        playAudioCue('transform');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [playAudioCue]);
 
   // Boot sequence loader states
   const [isBooting, setIsBooting] = useState(true);
@@ -409,6 +426,32 @@ function AppContent() {
                 </OSWindow>
               )}
 
+              {activeTab === 'explorer' && (
+                <OSWindow
+                  key="window-explorer"
+                  id="explorer"
+                  title="vs_code_project_explorer.sh"
+                  isOpen={true}
+                  widthClass="max-w-[950px]"
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <ProjectCodeExplorer />
+                </OSWindow>
+              )}
+
+              {activeTab === 'metrics' && (
+                <OSWindow
+                  key="window-metrics"
+                  id="metrics"
+                  title="engineering_performance_metrics.sh"
+                  isOpen={true}
+                  widthClass="max-w-[700px]"
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <MetricsDashboard />
+                </OSWindow>
+              )}
+
               {activeTab === 'timeline' && (
                 <OSWindow
                   key="window-timeline"
@@ -472,6 +515,11 @@ function AppContent() {
               </OSWindow>
             </div>
           )}
+        </AnimatePresence>
+
+        {/* Developer Diagnostics Overlay */}
+        <AnimatePresence>
+          {isDevOverlayOpen && <DeveloperOverlay />}
         </AnimatePresence>
 
       </main>

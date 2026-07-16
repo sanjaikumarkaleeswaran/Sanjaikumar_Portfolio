@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X } from 'lucide-react';
+import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X, FileCode, Activity } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
 interface CommandItem {
@@ -121,6 +121,28 @@ export const CommandPalette: React.FC<{
       action: () => {
         setActiveWindow('contact');
         setActiveTab('contact');
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'go-explorer',
+      title: 'Navigate to: VS Code Project Explorer',
+      category: 'Navigation',
+      icon: <FileCode size={14} className="text-cyber-purple" />,
+      action: () => {
+        setActiveWindow('explorer');
+        setActiveTab('explorer');
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'go-metrics',
+      title: 'Navigate to: Engineering Performance Metrics',
+      category: 'Navigation',
+      icon: <Activity size={14} className="text-cyber-magenta" />,
+      action: () => {
+        setActiveWindow('metrics');
+        setActiveTab('metrics');
         setIsCommandPaletteOpen(false);
       }
     },

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, User, RefreshCw, Command } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
+import { searchKnowledge } from '../../data/knowledgeBase';
 
 interface Message {
   id: string;
@@ -16,7 +17,7 @@ export const AIAssistant: React.FC = () => {
     {
       id: 'init',
       sender: 'ai',
-      text: 'Greetings. I am Sanjaikumar\'s Neural Copilot agent. I can answer recruiter questions, search technologies, recommend projects, or navigate the OS workspace for you. Try asking "open projects" or "tell me about your skills".',
+      text: 'Greetings. I am Sanjaikumar\'s Neural Copilot agent. I can answer recruiter questions, search technologies, recommend projects, or navigate the OS workspace for you. Try asking "Explain MindWave" or "How does your RAG pipeline work?".',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -62,7 +63,7 @@ export const AIAssistant: React.FC = () => {
 
     // AI typing & answering simulation
     setTimeout(() => {
-      let replyText = "Query received. I am searching Sanjaikumar's local databases. Try commands like 'open projects', 'recommend project', or ask about his experience.";
+      let replyText = "";
       const query = textToSend.toLowerCase();
 
       // Navigation Command Parser
@@ -82,54 +83,17 @@ export const AIAssistant: React.FC = () => {
         setActiveWindow('hero');
         addNotification('Returning to Central OS Dashboard', 'info');
         replyText = "Command acknowledged. Minimizing active windows and returning to the **Central OS Dashboard**.";
-      }
-      
-      // Standard Question Answers
-      else if (query.includes('hello') || query.includes('hi') || query.includes('hey')) {
-        replyText = "System connection active. I can retrieve and analyze Sanjaikumar P K's resume data. Try asking 'open projects' or 'summarize experience'.";
-      } else if (query.includes('project') && !query.includes('recommend') && !query.includes('open')) {
-        replyText = "Sanjaikumar has developed several key projects: \n\n" +
-          "1. **Nova (AI-RFP System)**: A React + TypeScript enterprise system with form validation, workflow engines, and QA test validations.\n" +
-          "2. **Aquarium Commerce**: A full-stack Dockerized e-commerce app optimizing SQL queries by ~30%.\n" +
-          "3. **Mindwave (Personal AI Life OS)**: A self-hosted context-aware productivity app integrated with MongoDB and external AI APIs.\n\n" +
-          "You can type **'open projects'** to launch the interactive viewer.";
-      } else if (query.includes('recommend') && (query.includes('project') || query.includes('work'))) {
-        replyText = "I highly recommend inspecting the following projects based on your focus:\n\n" +
-          "• For **AI & NoSQL Integration**: Inspect **Mindwave (Personal AI Life OS)**, which uses Python, MongoDB, and external AI models in a decoupled modular structure.\n" +
-          "• For **Enterprise React/TypeScript & QA**: Inspect **Nova AI RFP Platform**, built with robust validation hooks and Agile sprint cycles.\n" +
-          "• For **Full-Stack & Database Optimization**: Check out **Aquarium Commerce**, featuring SQL indexes and containerized Docker builds.";
-      } else if (query.includes('skill') || query.includes('tech') || query.includes('language')) {
-        replyText = "His core technical stack features:\n\n" +
-          "• **Frontend**: React.js, TypeScript, JavaScript, CSS3, TailwindCSS, Framer Motion.\n" +
-          "• **Backend & DB**: Python (FastAPI/Django), REST APIs, SQL, MongoDB.\n" +
-          "• **DevOps & Process**: Docker containerization, Git pipelines, AWS (in progress), Linux admin, and Agile SDLC sprints.\n\n" +
-          "Type **'open skills'** to visualize this as an interactive 3D solar system.";
-      } else if (query.includes('contact') || query.includes('email') || query.includes('reach') || query.includes('phone')) {
-        replyText = "You can establish direct contact with Sanjaikumar P K through these channels:\n\n" +
-          "• **Email**: sanjaikumarkaleeswarann@gmail.com\n" +
-          "• **Phone**: +91-8667010490\n" +
-          "• **GitHub**: github.com/sanjaikumarkaleeswaran\n" +
-          "• **Location**: Coimbatore, Tamil Nadu, India";
-      } else if (query.includes('education') || query.includes('college') || query.includes('cgpa') || query.includes('university')) {
-        replyText = "He graduated in **2025** with a **Bachelor of Science in Software Systems** from **Kongu Engineering College** (Erode, Tamil Nadu) with a solid CGPA of **8.05 / 10** and no standing arrears.";
-      } else if (query.includes('certification') || query.includes('certificate') || query.includes('aws')) {
-        replyText = "His professional credentials include:\n\n" +
-          "• **AWS Cloud Practitioner Essentials** (AWS Skill Builder - In Progress)\n" +
-          "• **Linux Fundamentals** (Udemy)\n" +
-          "• **Computer Networking Basics** (Udemy)";
-      } else if (query.includes('search')) {
-        const searchTerm = query.replace('search', '').trim();
-        if (searchTerm.includes('react') || searchTerm.includes('typescript') || searchTerm.includes('javascript') || searchTerm.includes('tailwind')) {
-          replyText = `Found match for "${searchTerm}" under **Frontend capabilities**. It is featured in **Nova AI RFP Platform** and **Aquarium Commerce**. Type 'open skills' to view them in orbit.`;
-        } else if (searchTerm.includes('python') || searchTerm.includes('fastapi') || searchTerm.includes('django') || searchTerm.includes('sql') || searchTerm.includes('mongo')) {
-          replyText = `Found match for "${searchTerm}" under **Backend & Databases**. It is featured in **Mindwave (Personal AI Life OS)** and **Student Ranking App**.`;
-        } else if (searchTerm.includes('docker') || searchTerm.includes('aws') || searchTerm.includes('linux') || searchTerm.includes('git')) {
-          replyText = `Found match for "${searchTerm}" under **DevOps & Cloud**. Featured in **Aquarium Commerce** and AWS study modules.`;
+      } else {
+        // Run Local RAG Similarity Search
+        const searchMatches = searchKnowledge(textToSend);
+        
+        if (searchMatches.length > 0) {
+          const topMatch = searchMatches[0];
+          replyText = `🔍 [LOCAL RAG NODE: MATCHED ${topMatch.doc.title} (SCORE: ${topMatch.score.toFixed(2)})]\n\n${topMatch.doc.content}`;
         } else {
-          replyText = `Search query "${searchTerm}" analyzed. No explicit database match, but it falls under general Software Engineering principles.`;
+          // Safeguard fallback to prevent hallucination
+          replyText = `⚠️ [SYSTEM SAFEGUARD ALERT: OUTSIDE VERIFIED KNOWLEDGEBASE]\n\nNo matching documents found in local knowledge archives. To prevent hallucinations and safeguard recruitment integrity, the AI Core is restricted to local credentials.\n\nTry asking:\n• "Explain Mindwave / Nova / Aquarium"\n• "Which projects use Docker / MongoDB / Python?"\n• "Tell me about your education / college credentials"`;
         }
-      } else if (query.includes('who') || query.includes('about') || query.includes('sanjai')) {
-        replyText = "Sanjaikumar P K is a B.Sc. Software Systems graduate (2025) with hands-on experience building AI-powered platforms and full-stack web applications. He specializes in designing user-centric, high-fidelity interfaces and scalable backend solutions.";
       }
 
       const aiMsg: Message = {
