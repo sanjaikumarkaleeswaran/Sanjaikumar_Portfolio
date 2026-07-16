@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
@@ -27,7 +27,9 @@ export const CommandPalette: React.FC<{
     setActiveWindow,
     isMuted,
     setIsMuted,
-    addNotification
+    addNotification,
+    theme,
+    setTheme
   } = useOS();
 
   const [search, setSearch] = useState('');
@@ -58,6 +60,13 @@ export const CommandPalette: React.FC<{
       setSelectedIndex(0);
     }
   }, [isCommandPaletteOpen]);
+
+  // Audio ticks when moving select index
+  useEffect(() => {
+    if (isCommandPaletteOpen && selectedIndex >= 0) {
+      playAudioCue('dockHover');
+    }
+  }, [selectedIndex, isCommandPaletteOpen]);
 
   const commands: CommandItem[] = [
     {
@@ -146,6 +155,71 @@ export const CommandPalette: React.FC<{
         setIsMuted(!isMuted);
         setIsCommandPaletteOpen(false);
       }
+    },
+    {
+      id: 'toggle-theme',
+      title: `Cycle System Theme (Current: ${theme.toUpperCase()})`,
+      category: 'System Config',
+      icon: <Cpu size={14} className="text-yellow-500" />,
+      action: () => {
+        const nextTheme = theme === 'cyber' ? 'obsidian' : theme === 'obsidian' ? 'matrix' : 'cyber';
+        setTheme(nextTheme);
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'trigger-matrix',
+      title: 'Initialize Digital Code Rain Matrix',
+      category: 'OS Utilities',
+      icon: <Terminal size={14} className="text-cyber-green" />,
+      action: () => {
+        setTheme('matrix');
+        setIsCommandPaletteOpen(false);
+        addNotification('Matrix theme cascade activated', 'success');
+      }
+    },
+    {
+      id: 'download-resume',
+      title: 'Transmit & Open CV Resume File',
+      category: 'Direct Download',
+      icon: <BookOpen size={14} className="text-cyber-green" />,
+      action: () => {
+        window.open('https://github.com/sanjaikumarkaleeswaran', '_blank');
+        setIsCommandPaletteOpen(false);
+        addNotification('CV Resume download stream initiated', 'success');
+      }
+    },
+    {
+      id: 'hire-me',
+      title: 'Initiate Secure Recruitment Dispatch (Hire)',
+      category: 'Action',
+      icon: <Mail size={14} className="text-cyber-magenta" />,
+      action: () => {
+        setActiveWindow('contact');
+        setActiveTab('contact');
+        setIsCommandPaletteOpen(false);
+        addNotification('Contact node loaded for dispatch', 'info');
+      }
+    },
+    {
+      id: 'open-github',
+      title: 'Open Developer Github Repository',
+      category: 'Social Routing',
+      icon: <Code size={14} className="text-cyber-cyan" />,
+      action: () => {
+        window.open('https://github.com/sanjaikumarkaleeswaran', '_blank');
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'open-linkedin',
+      title: 'Open Developer LinkedIn Network',
+      category: 'Social Routing',
+      icon: <User size={14} className="text-cyber-purple" />,
+      action: () => {
+        window.open('https://linkedin.com/in/sanjaikumarkaleeswaran', '_blank');
+        setIsCommandPaletteOpen(false);
+      }
     }
   ];
 
@@ -166,99 +240,96 @@ export const CommandPalette: React.FC<{
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (filtered[selectedIndex]) {
+        playAudioCue('click');
         filtered[selectedIndex].action();
       }
     }
   };
 
+  if (!isCommandPaletteOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isCommandPaletteOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsCommandPaletteOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setIsCommandPaletteOpen(false)}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+
+      {/* Palette Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: -10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: -10 }}
+        className="relative w-full max-w-[500px] border border-white/10 rounded-2xl bg-slate-950/90 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col font-mono"
+        onKeyDown={handleListKeyDown}
+      >
+        {/* Search Input Bar */}
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/5 bg-slate-900/30">
+          <Search size={15} className="text-cyber-cyan animate-pulse" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setSelectedIndex(0);
+              playAudioCue('type');
+            }}
+            placeholder="Type search queries or commands..."
+            className="flex-1 bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 focus:ring-0 focus:outline-none"
           />
-
-          {/* Palette Box */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="relative w-full max-w-[550px] border border-white/10 rounded-xl bg-slate-950/90 backdrop-blur-2xl shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col font-mono"
-            onKeyDown={handleListKeyDown}
+          <button
+            onClick={() => setIsCommandPaletteOpen(false)}
+            className="p-1 rounded hover:bg-white/5 text-slate-500 hover:text-white transition-colors cursor-pointer"
           >
-            {/* Input Wrapper */}
-            <div className="flex items-center px-4 border-b border-white/5 py-3">
-              <Search size={14} className="text-slate-500 mr-2.5" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setSelectedIndex(0);
-                }}
-                placeholder="Type command mandate..."
-                className="flex-1 bg-transparent border-none outline-none text-xs text-white placeholder-slate-600 focus:ring-0 font-mono"
-              />
-              <button 
-                onClick={() => setIsCommandPaletteOpen(false)}
-                className="text-slate-500 hover:text-white"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            {/* List Buffer */}
-            <div className="max-h-[300px] overflow-y-auto p-2 space-y-0.5 custom-scroll">
-              {filtered.length > 0 ? (
-                filtered.map((cmd, index) => {
-                  const isSelected = index === selectedIndex;
-                  return (
-                    <button
-                      key={cmd.id}
-                      onClick={() => {
-                        playAudioCue('click');
-                        cmd.action();
-                      }}
-                      onMouseEnter={() => setSelectedIndex(index)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-left ${
-                        isSelected 
-                          ? 'bg-white/10 text-cyber-cyan shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] font-bold' 
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {cmd.icon}
-                        <span className="text-[11px]">{cmd.title}</span>
-                      </div>
-                      <span className="text-[9px] text-slate-600 uppercase tracking-widest px-1.5 py-0.5 rounded border border-white/5 bg-black/40">
-                        {cmd.category}
-                      </span>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="text-center py-6 text-xs text-slate-600">
-                  No matching mandates decoded.
-                </div>
-              )}
-            </div>
-
-            {/* Footer tips */}
-            <div className="px-4 py-2 border-t border-white/5 bg-slate-900/20 text-[9px] text-slate-500 flex items-center justify-between">
-              <span>Use ↑↓ keys to navigate, Enter to launch</span>
-              <span>ESC to close</span>
-            </div>
-          </motion.div>
+            <X size={12} />
+          </button>
         </div>
-      )}
-    </AnimatePresence>
+
+        {/* Commands List Area */}
+        <div className="max-h-[280px] overflow-y-auto p-2 space-y-1 custom-scroll bg-black/20">
+          {filtered.length > 0 ? (
+            filtered.map((cmd, index) => (
+              <button
+                key={cmd.id}
+                onClick={() => {
+                  playAudioCue('click');
+                  cmd.action();
+                }}
+                onMouseEnter={() => setSelectedIndex(index)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${
+                  selectedIndex === index
+                    ? 'bg-cyber-cyan/10 border border-cyber-cyan/35 text-white shadow-[0_0_8px_rgba(0,240,255,0.1)]'
+                    : 'border border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {cmd.icon}
+                  <span className="text-[11px] font-semibold">{cmd.title}</span>
+                </div>
+                <span className="text-[8px] uppercase tracking-widest font-bold opacity-60 text-slate-500">
+                  {cmd.category}
+                </span>
+              </button>
+            ))
+          ) : (
+            <div className="py-8 text-center text-slate-600 text-[10px]">
+              No database records match current query.
+            </div>
+          )}
+        </div>
+
+        {/* Command instructions bar */}
+        <div className="px-4 py-2 border-t border-white/5 bg-slate-950/80 flex justify-between text-[8px] text-slate-600 uppercase select-none">
+          <span>↑↓ to navigate</span>
+          <span>⏎ to confirm</span>
+          <span>esc to close</span>
+        </div>
+      </motion.div>
+    </div>
   );
 };

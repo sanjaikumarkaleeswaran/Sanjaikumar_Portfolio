@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, ArrowRight, Cpu } from 'lucide-react';
+import { Terminal, Cpu, Globe, Clock, Zap, FileText, UserCheck, Activity } from 'lucide-react';
 import { HologramCore } from '../canvas/HologramCore';
 import { useOS } from '../../context/OSContext';
 
 export const HeroDashboard: React.FC<{
   setIsTerminalOpen: (open: boolean) => void;
   setActiveTab: (tab: any) => void;
-}> = ({
-  setIsTerminalOpen,
-  setActiveTab
-}) => {
-  const { playAudioCue, setActiveWindow } = useOS();
+}> = (props) => {
+  const { setIsTerminalOpen } = props;
+  const { 
+    playAudioCue, 
+    isRecruiterMode, 
+    setIsRecruiterMode,
+    addNotification 
+  } = useOS();
+
   const [headlineText, setHeadlineText] = useState('');
   const fullHeadline = 'FULL STACK & AI WEB ARCHITECT';
+
+  // Live telemetry fluctuating states
+  const [cpuUsage, setCpuUsage] = useState(24);
+  const [gpuUsage, setGpuUsage] = useState(38);
+  const [ramUsage, setRamUsage] = useState(68);
+  const [pingLatency, setPingLatency] = useState(24);
+  const [timeString, setTimeString] = useState('00:00:00');
 
   // Typing animation
   useEffect(() => {
@@ -28,92 +39,223 @@ export const HeroDashboard: React.FC<{
     return () => clearInterval(timer);
   }, []);
 
+  // System statistics simulator
+  useEffect(() => {
+    const statTimer = setInterval(() => {
+      setCpuUsage((prev) => Math.min(Math.max(prev + (Math.random() * 8 - 4), 12), 48));
+      setGpuUsage((prev) => Math.min(Math.max(prev + (Math.random() * 6 - 3), 25), 58));
+      setRamUsage((prev) => Math.min(Math.max(prev + (Math.random() * 2 - 1), 66), 72));
+      setPingLatency((prev) => Math.min(Math.max(prev + (Math.random() * 4 - 2), 16), 34));
+    }, 1500);
+
+    return () => clearInterval(statTimer);
+  }, []);
+
+  // Ticking Clock
+  useEffect(() => {
+    const clockTimer = setInterval(() => {
+      const now = new Date();
+      setTimeString(now.toLocaleTimeString());
+    }, 1000);
+    return () => clearInterval(clockTimer);
+  }, []);
+
+  // Mock GitHub active activity feed logs
+  const gitLogs = [
+    'feat(webgl): compile custom cosmic nebula shader [2m ago]',
+    'docs(specs): update developer specs telemetry [10m ago]',
+    'fix(dock): stabilize audio sound nodes [1h ago]',
+    'feat(twin): render point-cloud face coordinates [4h ago]',
+    'refactor(os): optimize component bundles [1d ago]'
+  ];
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-6 font-mono">
       
-      {/* Left side: HUD text profile info */}
+      {/* Left side: Mission Control Grid & Info */}
       <div className="lg:col-span-7 space-y-6">
         
-        {/* Connection status tag */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyber-cyan/30 bg-cyber-cyan/5 text-cyber-cyan font-mono text-[9px] uppercase tracking-widest"
-        >
-          <Cpu className="animate-spin text-cyber-cyan" size={10} />
-          <span>SYS_CONNECTION_SECURE // ACC_GRNTD</span>
-        </motion.div>
+        {/* Connection status HUD */}
+        <div className="flex flex-wrap gap-3">
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyber-cyan/35 bg-cyber-cyan/5 text-cyber-cyan text-[8.5px] uppercase tracking-widest"
+          >
+            <Cpu className="animate-spin text-cyber-cyan" size={10} />
+            <span>SYS_CONNECTION_SECURE // PORT_5192</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyber-green/35 bg-cyber-green/5 text-cyber-green text-[8.5px] uppercase tracking-widest"
+          >
+            <Globe className="text-cyber-green" size={10} />
+            <span>PING: {Math.floor(pingLatency)}MS // ONLINE</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyber-purple/35 bg-cyber-purple/5 text-cyber-purple text-[8.5px] uppercase tracking-widest"
+          >
+            <Clock size={10} />
+            <span>LOCAL: {timeString}</span>
+          </motion.div>
+        </div>
 
         {/* Big cinematic headlines */}
         <div className="space-y-2">
           <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-bold tracking-tight text-white font-mono uppercase"
+            className="text-4xl md:text-5xl font-bold tracking-tight text-white uppercase"
           >
             SANJAIKUMAR <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta">P K</span>
           </motion.h1>
 
-          <div className="h-6 font-mono text-xs md:text-sm font-semibold tracking-wider text-cyber-cyan flex items-center">
+          <div className="h-6 text-xs md:text-sm font-semibold tracking-wider text-cyber-cyan flex items-center">
             <span>{headlineText}</span>
             <span className="h-4 w-1.5 bg-cyber-cyan ml-1 animate-pulse" />
           </div>
         </div>
 
-        {/* Profile summary bio */}
-        <motion.p
+        {/* Mission Briefing */}
+        <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-xs md:text-sm text-slate-400 max-w-[550px] leading-relaxed"
+          transition={{ delay: 0.2 }}
+          className="p-4 border border-white/5 rounded-xl bg-slate-950/40 backdrop-blur-md space-y-2.5"
         >
-          B.Sc. Software Systems graduate (2025, CGPA 8.05/10) from Kongu Engineering College. 
-          Specialized in building context-aware UI/UX flows and robust full-stack software applications (React, TS, Python). 
-          Passionate about deep-tech innovation, agentic AI, and scaling intelligent products from concept to containerized deployment.
-        </motion.p>
-
-        {/* Grid of quick OS stats cards */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-        >
-          {[
-            { label: 'GPA RATING', val: '8.05 / 10' },
-            { label: 'CORE DEPLOYS', val: '4+ Projects' },
-            { label: 'WORKFLOW', val: 'Agile SDLC' },
-            { label: 'CONTAINERS', val: 'Dockerized' }
-          ].map((stat, i) => (
-            <div key={i} className="p-3 border border-white/5 rounded-xl bg-slate-950/40 backdrop-blur-md">
-              <div className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">{stat.label}</div>
-              <div className="text-xs font-mono text-slate-200 mt-1 font-bold">{stat.val}</div>
-            </div>
-          ))}
+          <div className="flex items-center gap-2 text-cyber-magenta text-[9px] uppercase tracking-widest font-semibold">
+            <Zap size={10} className="animate-bounce" />
+            <span>CURRENT OPERATIONAL MISSION</span>
+          </div>
+          <p className="text-slate-400 text-xs leading-relaxed font-sans">
+            B.Sc. Software Systems graduate (2025, CGPA 8.05/10) from Kongu Engineering College. 
+            Actively seeking professional roles in software architecture and full-stack development, specializing in React, TS, Python, and containerized scale.
+          </p>
         </motion.div>
 
-        {/* Interactive action launchers */}
+        {/* Live Hardware Stats Panel */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="p-4 border border-white/5 rounded-xl bg-slate-950/40 backdrop-blur-md space-y-3"
+        >
+          <div className="text-[9px] text-slate-500 uppercase tracking-widest flex justify-between">
+            <span>Core Hardware Telemetry</span>
+            <span className="text-cyber-cyan animate-pulse">Live</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 text-[9.5px]">
+            {/* CPU Bar */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-slate-400">
+                <span>CPU LOAD</span>
+                <span className="text-cyber-cyan">{Math.floor(cpuUsage)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-cyber-cyan transition-all duration-1000" 
+                  style={{ width: `${cpuUsage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* GPU Bar */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-slate-400">
+                <span>GPU RENDER</span>
+                <span className="text-cyber-purple">{Math.floor(gpuUsage)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-cyber-purple transition-all duration-1000" 
+                  style={{ width: `${gpuUsage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* RAM Bar */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-slate-400">
+                <span>RAM UTILIZATION</span>
+                <span className="text-cyber-green">{Math.floor(ramUsage)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-cyber-green transition-all duration-1000" 
+                  style={{ width: `${ramUsage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* GitHub active Activity Feed */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="p-4 border border-white/5 rounded-xl bg-slate-950/40 backdrop-blur-md space-y-2"
+        >
+          <div className="text-[9px] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <Activity size={10} className="text-cyber-green animate-pulse" />
+            <span>GitHub Active Event Logs</span>
+          </div>
+          <div className="space-y-1 max-h-[85px] overflow-y-auto text-[9px] text-slate-400 select-none custom-scroll">
+            {gitLogs.map((log, idx) => (
+              <div key={idx} className="flex gap-2 items-center font-mono py-0.5 hover:text-white transition-colors">
+                <span className="text-cyber-cyan">&gt;</span>
+                <span className="truncate">{log}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Command Controls CTAs */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex flex-wrap gap-4 pt-2"
+          className="flex flex-wrap gap-4 pt-1"
         >
-          {/* Main CTA: specs dashboard */}
+          {/* Recruiter Mode Toggle */}
           <button
             onClick={() => {
               playAudioCue('click');
-              setActiveWindow('about');
-              setActiveTab('about');
+              setIsRecruiterMode(!isRecruiterMode);
             }}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyber-cyan to-cyber-purple hover:from-cyber-cyan hover:to-cyber-magenta text-slate-950 font-mono text-xs font-bold flex items-center gap-2 cursor-pointer shadow-lg hover:shadow-cyber-cyan/20 transition-all hover:scale-102"
+            className={`px-5 py-2.5 rounded-xl font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition-all hover:scale-102 shadow-lg ${
+              isRecruiterMode 
+                ? 'bg-cyber-purple text-white shadow-cyber-purple/20' 
+                : 'bg-gradient-to-r from-cyber-cyan to-cyber-purple hover:from-cyber-cyan hover:to-cyber-magenta text-slate-950 shadow-cyber-cyan/20'
+            }`}
           >
-            <span>DECRYPT SYSTEM SPECS</span>
-            <ArrowRight size={14} />
+            <UserCheck size={14} className={isRecruiterMode ? 'animate-pulse' : ''} />
+            <span>{isRecruiterMode ? 'DISENGAGE RECRUITER_MODE' : 'ENGAGE RECRUITER_MODE'}</span>
           </button>
 
-          {/* Sub CTA: terminal launcher */}
+          {/* Quick PDF download */}
+          <button
+            onClick={() => {
+              playAudioCue('click');
+              window.open('https://github.com/sanjaikumarkaleeswaran', '_blank');
+              addNotification('Initiating resume PDF download stream', 'success');
+            }}
+            className="px-5 py-2.5 rounded-xl border border-white/10 hover:border-cyber-green/50 bg-white/5 text-slate-300 hover:text-white font-mono text-xs flex items-center gap-2 cursor-pointer transition-all hover:bg-slate-900/60"
+          >
+            <FileText size={14} className="text-cyber-green" />
+            <span>GET RESUME CV</span>
+          </button>
+
+          {/* Terminal button */}
           <button
             onClick={() => {
               playAudioCue('click');
@@ -122,13 +264,13 @@ export const HeroDashboard: React.FC<{
             className="px-5 py-2.5 rounded-xl border border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-slate-300 hover:text-white font-mono text-xs flex items-center gap-2 cursor-pointer transition-all hover:bg-slate-900/60"
           >
             <Terminal size={14} className="text-cyber-cyan" />
-            <span>INITIALIZE BASH SHELL</span>
+            <span>VIRTUAL BASH</span>
           </button>
         </motion.div>
 
       </div>
 
-      {/* Right side: 3D Hologram core */}
+      {/* Right side: 3D Hologram core (AI Digital Twin Point Cloud) */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

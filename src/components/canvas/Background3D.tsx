@@ -1,37 +1,145 @@
-import React, { useRef, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React, { useRef, useMemo } from 'react';
+import { Canvas, useFrame, extend } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+
+// Custom GLSL Shader for the flowing Cosmic Nebula background
+class CosmicNebulaMaterial extends THREE.ShaderMaterial {
+  constructor() {
+    super({
+      uniforms: {
+        uTime: { value: 0 },
+        uResolution: { value: new THREE.Vector2(1, 1) },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec2 vUv;
+
+        // Fractional Brownian Motion (fbm) noise algorithms
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
+
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
+                     mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+        }
+
+        float fbm(vec2 p) {
+          float value = 0.0;
+          float amplitude = 0.5;
+          float frequency = 1.0;
+          for (int i = 0; i < 4; i++) {
+            value += amplitude * noise(p * frequency);
+            frequency *= 2.0;
+            amplitude *= 0.5;
+          }
+          return value;
+        }
+
+        void main() {
+          vec2 uv = vUv * 2.0 - 1.0;
+          
+          // Shifting coordinate spaces
+          vec2 p1 = uv * 1.5;
+          p1.x += uTime * 0.025;
+          p1.y += sin(uTime * 0.015) * 0.3;
+          
+          vec2 p2 = uv * 0.8;
+          p2.x -= uTime * 0.015;
+          p2.y += cos(uTime * 0.02) * 0.2;
+
+          // Compute FBM values for flowing gas colors
+          float n1 = fbm(p1 + fbm(p2));
+          float n2 = fbm(p2 + n1);
+          
+          // Dark space theme base
+          vec3 baseColor = vec3(0.012, 0.0, 0.078); // #030014
+          
+          // Glowing Neon accents
+          vec3 cyanGlow = vec3(0.0, 0.941, 1.0);     // #00f0ff
+          vec3 magentaGlow = vec3(1.0, 0.0, 0.498);  // #ff007f
+          vec3 purpleGlow = vec3(0.615, 0.309, 0.866); // #9d4edd
+
+          // Mix colors based on shifting noise fields
+          vec3 finalColor = baseColor;
+          finalColor = mix(finalColor, cyanGlow, n1 * 0.22);
+          finalColor = mix(finalColor, magentaGlow, n2 * 0.18);
+          finalColor = mix(finalColor, purpleGlow, (n1 + n2) * 0.12);
+
+          // Add a soft circular vignette shadow
+          float vignette = 1.0 - dot(uv, uv) * 0.25;
+          vignette = clamp(vignette, 0.0, 1.0);
+          finalColor *= vignette;
+
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `,
+      depthWrite: false,
+      depthTest: false,
+    });
+  }
+}
+
+extend({ CosmicNebulaMaterial });
+
+function NebulaQuad() {
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  useFrame((state) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <mesh position={[0, 0, -10]}>
+      <planeGeometry args={[2, 2]} />
+      {/* @ts-ignore */}
+      <cosmicNebulaMaterial ref={materialRef} />
+    </mesh>
+  );
+}
 
 function StarField() {
   const ref = useRef<THREE.Points>(null);
   
-  // Generate random particle positions
-  const count = 400;
-  const positions = React.useMemo(() => {
+  // Generate random cosmic points
+  const count = 600;
+  const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 25;     // X
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 25; // Y
+      arr[i * 3] = (Math.random() - 0.5) * 35;     // X
+      arr[i * 3 + 1] = (Math.random() - 0.5) * 35; // Y
       arr[i * 3 + 2] = (Math.random() - 0.5) * 20; // Z
     }
     return arr;
   }, []);
 
-  // Animation frame drift
   useFrame((state) => {
     if (!ref.current) return;
-    ref.current.rotation.y = state.clock.getElapsedTime() * 0.015;
-    ref.current.rotation.x = state.clock.getElapsedTime() * 0.005;
+    const t = state.clock.getElapsedTime();
+    ref.current.rotation.y = t * 0.008;
+    ref.current.rotation.x = t * 0.003;
   });
 
   return (
-    <group rotation={[0, 0, Math.PI / 4]}>
+    <group rotation={[0, 0, Math.PI / 6]}>
       <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
         <PointMaterial
           transparent
           color="#00f0ff"
-          size={0.06}
+          size={0.05}
           sizeAttenuation={true}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
@@ -41,72 +149,80 @@ function StarField() {
   );
 }
 
-function SpaceGrid() {
+function LivingSpaceGrid() {
   const gridRef = useRef<THREE.GridHelper>(null);
 
   useFrame((state) => {
     if (!gridRef.current) return;
-    // Slow breathing oscillation tilt
     const time = state.clock.getElapsedTime();
-    gridRef.current.rotation.x = Math.sin(time * 0.2) * 0.05 + 1.4;
-    gridRef.current.rotation.y = Math.cos(time * 0.1) * 0.03;
+    
+    // Smooth breathing rotation cycles
+    gridRef.current.rotation.x = Math.sin(time * 0.15) * 0.06 + 1.35;
+    gridRef.current.rotation.y = Math.cos(time * 0.08) * 0.04;
+    
+    // Pulsing breathing grid intensity
+    const material = gridRef.current.material as THREE.LineBasicMaterial;
+    if (material) {
+      material.opacity = 0.05 + (Math.sin(time * 0.8) * 0.03);
+    }
   });
 
   return (
     <gridHelper
       ref={gridRef}
-      args={[40, 40, '#ff007f', '#00f0ff']}
-      position={[0, -2, 0]}
-      rotation={[1.4, 0, 0]}
+      args={[45, 45, '#ff007f', '#00f0ff']}
+      position={[0, -2.5, 0]}
+      rotation={[1.35, 0, 0]}
     >
-      <lineBasicMaterial attach="material" opacity={0.07} transparent />
+      <lineBasicMaterial attach="material" opacity={0.06} transparent />
     </gridHelper>
   );
 }
 
+// Cinematic Camera Controller component reacting to scroll + mouse movement
+function CinematicCameraController() {
+  useFrame((state) => {
+    const targetX = state.pointer.x * 1.5;
+    const targetY = state.pointer.y * 1.2;
+    
+    // Slow drifting sways over time
+    const driftY = Math.sin(state.clock.getElapsedTime() * 0.35) * 0.3;
+    const driftX = Math.cos(state.clock.getElapsedTime() * 0.25) * 0.3;
+
+    // Smoothly interpolate camera position using LERP
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX + driftX, 0.05);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY + driftY, 0.05);
+    
+    // Slowly orient lookAt to scene center
+    state.camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
+
 export const Background3D: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Mouse Parallax effect
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const x = (clientX / window.innerWidth - 0.5) * 15;
-      const y = (clientY / window.innerHeight - 0.5) * 15;
-      container.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
-    <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
-      <div 
-        ref={containerRef} 
-        className="w-[102vw] h-[102vh] -left-[1vw] -top-[1vh] absolute transition-transform duration-300 ease-out"
-      >
+    <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#030014]">
+      {/* 3D Canvas Background */}
+      <div className="w-full h-full absolute">
         <Canvas
-          camera={{ position: [0, 0, 8], fov: 60 }}
-          gl={{ antialias: true, alpha: true }}
-          style={{ background: 'transparent' }}
+          camera={{ position: [0, 0, 9], fov: 60 }}
+          gl={{ antialias: true, alpha: false }}
+          style={{ background: 'black' }}
         >
-          <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} intensity={1.5} color="#00f0ff" />
-          <pointLight position={[-10, -10, -10]} intensity={1} color="#ff007f" />
+          <ambientLight intensity={0.4} />
           
+          <CinematicCameraController />
+          <NebulaQuad />
           <StarField />
-          <SpaceGrid />
+          <LivingSpaceGrid />
         </Canvas>
       </div>
       
-      {/* Dynamic atmospheric ambient gradients overlay */}
-      <div className="absolute inset-0 bg-radial-at-t from-transparent via-[#030014]/60 to-[#030014] mix-blend-multiply" />
-      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-cyber-purple/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-cyber-cyan/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Fallback ambient gradients blending */}
+      <div className="absolute inset-0 bg-radial-at-t from-transparent via-[#030014]/50 to-[#030014] mix-blend-multiply pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[55vw] h-[55vw] bg-cyber-purple/10 blur-[130px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[55vw] h-[55vw] bg-cyber-cyan/10 blur-[130px] rounded-full pointer-events-none" />
     </div>
   );
 };

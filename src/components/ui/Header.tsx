@@ -8,7 +8,10 @@ export const Header: React.FC = () => {
     setIsMuted, 
     setIsCommandPaletteOpen, 
     playAudioCue,
-    sysUptime 
+    sysUptime,
+    currentChapter,
+    volume,
+    setVolume
   } = useOS();
   
   const [time, setTime] = useState('');
@@ -38,7 +41,7 @@ export const Header: React.FC = () => {
   return (
     <header 
       className="sticky top-0 z-50 border-b border-white/5 bg-black/60 backdrop-blur-md px-4 md:px-8 py-3.5 flex items-center justify-between select-none"
-      onMouseEnter={() => playAudioCue('hover')}
+      onMouseEnter={() => playAudioCue('dockHover')}
     >
       {/* OS Branding logo */}
       <div className="flex items-center gap-3">
@@ -51,13 +54,19 @@ export const Header: React.FC = () => {
         </span>
       </div>
 
+      {/* Chapter Indicator Status bar */}
+      <div className="hidden lg:flex items-center gap-2 border-l border-r border-white/10 px-4 py-0.5 font-mono text-[9px] text-cyber-cyan uppercase tracking-widest select-none">
+        <span>{currentChapter}</span>
+      </div>
+
       {/* Global telemetry resources & clock */}
       <div className="flex items-center gap-6 text-[10px] font-mono text-slate-400">
         
         {/* Search Spotlight Shortcut */}
         <button 
-          onClick={() => {
-            playAudioCue('click');
+          onClick={(e) => {
+            const pan = (e.clientX / window.innerWidth) * 2 - 1;
+            playAudioCue('click', pan);
             setIsCommandPaletteOpen(true);
           }}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-slate-300 hover:text-cyber-cyan transition-all cursor-pointer"
@@ -91,21 +100,41 @@ export const Header: React.FC = () => {
           <span>ONLINE</span>
         </div>
 
-        {/* Procedural sound toggle */}
-        <button
-          onClick={() => {
-            setIsMuted(!isMuted);
-            playAudioCue('click');
-          }}
-          className={`p-1.5 rounded-md border transition-all cursor-pointer ${
-            !isMuted 
-              ? 'border-cyber-cyan/40 text-cyber-cyan bg-cyber-cyan/5' 
-              : 'border-white/10 text-slate-500 hover:text-slate-300'
-          }`}
-          title={isMuted ? 'Unmute procedural audio' : 'Mute audio'}
-        >
-          {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
-        </button>
+        {/* Procedural sound toggle & volume */}
+        <div className="flex items-center gap-2 border-l border-white/10 pl-2">
+          <button
+            onClick={(e) => {
+              const pan = (e.clientX / window.innerWidth) * 2 - 1;
+              setIsMuted(!isMuted);
+              playAudioCue('click', pan);
+            }}
+            className={`p-1.5 rounded-md border transition-all cursor-pointer ${
+              !isMuted 
+                ? 'border-cyber-cyan/40 text-cyber-cyan bg-cyber-cyan/5' 
+                : 'border-white/10 text-slate-500 hover:text-slate-300'
+            }`}
+            title={isMuted ? 'Unmute procedural audio (Shortcut: M)' : 'Mute audio (Shortcut: M)'}
+          >
+            {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+          </button>
+          
+          {!isMuted && (
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={volume}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                setVolume(val);
+              }}
+              onMouseUp={() => playAudioCue('tap')}
+              className="w-12 sm:w-16 h-1 rounded bg-white/10 accent-cyber-cyan cursor-pointer transition-all hover:bg-white/20"
+              title={`Volume: ${Math.round(volume * 100)}%`}
+            />
+          )}
+        </div>
 
         {/* System Clock */}
         <div className="flex items-center gap-2 text-slate-200 font-bold border-l border-white/10 pl-4">

@@ -129,10 +129,12 @@ export const OSDock: React.FC<{
               )}
               
               <motion.button
-                onClick={() => {
-                  playAudioCue('click');
+                onClick={(e) => {
+                  const pan = (e.clientX / window.innerWidth) * 2 - 1;
+                  playAudioCue('click', pan);
                   item.action();
                 }}
+                onMouseEnter={() => playAudioCue('dockHover')}
                 whileHover={{ y: -8, scale: 1.15 }}
                 whileTap={{ scale: 0.95 }}
                 className={`relative p-3 rounded-full border transition-all cursor-pointer group flex items-center justify-center ${

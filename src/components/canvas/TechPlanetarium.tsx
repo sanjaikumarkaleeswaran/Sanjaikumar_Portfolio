@@ -13,24 +13,45 @@ interface SkillPlanetProps {
   yOffset?: number;
   moons: string[];
   onSelect: (name: string, details: string[]) => void;
+  isFocused: boolean;
+  onFocus: () => void;
 }
 
-function Planet({ name, color, size, orbitRadius, orbitSpeed, yOffset = 0, moons, onSelect }: SkillPlanetProps) {
+function Planet({ name, color, size, orbitRadius, orbitSpeed, yOffset = 0, moons, onSelect, isFocused, onFocus }: SkillPlanetProps) {
   const planetRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const { playAudioCue } = useOS();
+
+  // Keep track of moon positions to draw connecting lines
+  const moonPositions = useRef<THREE.Vector3[]>(moons.map(() => new THREE.Vector3()));
 
   useFrame((state) => {
     if (!planetRef.current) return;
     const time = state.clock.getElapsedTime();
     
-    // Slow down rotation/orbit speed when hovered
-    const speedMultiplier = hovered ? 0.15 : 1.0;
+    // Slow down rotation/orbit speed when hovered or focused
+    const speedMultiplier = (hovered || isFocused) ? 0.08 : 1.0;
     const angle = time * orbitSpeed * speedMultiplier;
     
-    planetRef.current.position.x = Math.sin(angle) * orbitRadius;
-    planetRef.current.position.z = Math.cos(angle) * orbitRadius;
-    planetRef.current.position.y = Math.sin(time * 0.8 + orbitRadius) * 0.4 + yOffset;
+    const x = Math.sin(angle) * orbitRadius;
+    const z = Math.cos(angle) * orbitRadius;
+    const y = Math.sin(time * 0.8 + orbitRadius) * 0.4 + yOffset;
+
+    planetRef.current.position.set(x, y, z);
+
+    // Update moon positions locally relative to planet
+    moons.forEach((_, idx) => {
+      const moonRadius = size * 1.8 + idx * 0.18;
+      const moonSpeed = 1.8 + idx * 0.7;
+      const moonAngle = time * moonSpeed * speedMultiplier;
+      
+      const mx = Math.sin(moonAngle) * moonRadius;
+      const mz = Math.cos(moonAngle) * moonRadius;
+      
+      if (moonPositions.current[idx]) {
+        moonPositions.current[idx].set(mx, 0, mz);
+      }
+    });
   });
 
   return (
@@ -45,14 +66,15 @@ function Planet({ name, color, size, orbitRadius, orbitSpeed, yOffset = 0, moons
       onClick={(e) => {
         e.stopPropagation();
         playAudioCue('click');
+        onFocus();
         onSelect(name, moons);
       }}
     >
       {/* Glow mesh ring around planet */}
-      {hovered && (
+      {(hovered || isFocused) && (
         <mesh>
-          <torusGeometry args={[size * 1.5, 0.02, 8, 32]} />
-          <meshBasicMaterial color={color} transparent opacity={0.6} />
+          <torusGeometry args={[size * 1.4, 0.015, 8, 48]} />
+          <meshBasicMaterial color={color} transparent opacity={0.5} blending={THREE.AdditiveBlending} />
         </mesh>
       )}
 
@@ -61,33 +83,39 @@ function Planet({ name, color, size, orbitRadius, orbitSpeed, yOffset = 0, moons
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
           color={color}
-          roughness={0.2}
-          metalness={0.8}
+          roughness={0.25}
+          metalness={0.7}
           emissive={color}
-          emissiveIntensity={hovered ? 0.8 : 0.2}
+          emissiveIntensity={hovered || isFocused ? 0.75 : 0.2}
         />
       </mesh>
 
       {/* Orbiting Satellites / Moons */}
-      {moons.map((_, index) => {
-        const moonRadius = size * 1.8 + index * 0.15;
-        const moonSpeed = 2 + index * 0.8;
+      {moons.map((moonName, index) => {
+        const moonRadius = size * 1.8 + index * 0.18;
+        const moonSpeed = 1.8 + index * 0.7;
         return (
-          <Moon 
-            key={index}
-            radius={moonRadius}
-            speed={moonSpeed}
-            color={color}
-            parentHovered={hovered}
-          />
+          <group key={index}>
+            <Moon 
+              radius={moonRadius}
+              speed={moonSpeed}
+              color={color}
+              parentHovered={hovered || isFocused}
+              name={moonName}
+            />
+            {/* Connecting line to moon */}
+            {(hovered || isFocused) && (
+              <LineToCenter color={color} index={index} positionsRef={moonPositions} />
+            )}
+          </group>
         );
       })}
 
       {/* Planet Label HTML Overlay */}
-      <Html distanceFactor={10} position={[0, size + 0.4, 0]} center>
-        <div className={`px-2 py-0.5 rounded border text-[9px] font-mono whitespace-nowrap backdrop-blur-md transition-all ${
-          hovered 
-            ? 'bg-black border-cyber-cyan text-cyber-cyan scale-110 shadow-[0_0_10px_rgba(0,240,255,0.4)]' 
+      <Html distanceFactor={10} position={[0, size + 0.35, 0]} center>
+        <div className={`px-2 py-0.5 rounded border text-[9px] font-mono whitespace-nowrap backdrop-blur-md transition-all select-none ${
+          hovered || isFocused 
+            ? 'bg-black border-cyber-cyan text-cyber-cyan scale-110 shadow-[0_0_10px_rgba(0,240,255,0.4)] z-50' 
             : 'bg-black/60 border-white/10 text-slate-400'
         }`}>
           {name}
@@ -97,13 +125,36 @@ function Planet({ name, color, size, orbitRadius, orbitSpeed, yOffset = 0, moons
   );
 }
 
-function Moon({ radius, speed, color, parentHovered }: { radius: number; speed: number; color: string; parentHovered: boolean }) {
+// Subcomponent to draw dynamic connecting lines
+const LineToCenter: React.FC<{ color: string; index: number; positionsRef: React.RefObject<THREE.Vector3[]> }> = ({ color, index, positionsRef }) => {
+  const lineRef = useRef<THREE.Line>(null);
+
+  useFrame(() => {
+    if (!lineRef.current || !positionsRef.current || !positionsRef.current[index]) return;
+    const target = positionsRef.current[index];
+    const geometry = lineRef.current.geometry;
+    
+    // Draw line from [0,0,0] to moon [x,y,z]
+    const points = [new THREE.Vector3(0, 0, 0), target];
+    geometry.setFromPoints(points);
+  });
+
+  return (
+    <line ref={lineRef as any}>
+      <bufferGeometry />
+      <lineBasicMaterial color={color} transparent opacity={0.25} blending={THREE.AdditiveBlending} />
+    </line>
+  );
+};
+
+function Moon({ radius, speed, color, parentHovered, name }: { radius: number; speed: number; color: string; parentHovered: boolean; name: string }) {
   const moonRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
 
   useFrame((state) => {
     if (!moonRef.current) return;
     const time = state.clock.getElapsedTime();
-    const speedMult = parentHovered ? 0.2 : 1.0;
+    const speedMult = parentHovered ? 0.08 : 1.0;
     const angle = time * speed * speedMult;
     
     moonRef.current.position.x = Math.sin(angle) * radius;
@@ -111,11 +162,69 @@ function Moon({ radius, speed, color, parentHovered }: { radius: number; speed: 
   });
 
   return (
-    <mesh ref={moonRef}>
+    <mesh 
+      ref={moonRef}
+      onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
+      onPointerOut={() => setHovered(false)}
+    >
       <sphereGeometry args={[0.07, 8, 8]} />
-      <meshBasicMaterial color={color} transparent opacity={parentHovered ? 0.8 : 0.4} />
+      <meshBasicMaterial color={color} transparent opacity={parentHovered ? 0.8 : 0.3} />
+      
+      {/* Show technology label on moon hover */}
+      {(hovered || (parentHovered && name.length < 9)) && (
+        <Html distanceFactor={8} position={[0, 0.18, 0]} center>
+          <div className="px-1.5 py-0.5 rounded border border-cyber-cyan/35 bg-slate-950/90 text-white font-mono text-[7.5px] whitespace-nowrap shadow-md pointer-events-none select-none z-50">
+            {name}
+          </div>
+        </Html>
+      )}
     </mesh>
   );
+}
+
+// Cinematic orbital camera controller component that targets selected planets
+interface TechCameraCtrlProps {
+  focusedPlanet: string | null;
+  planetsData: Array<{ name: string; orbitRadius: number; yOffset: number; orbitSpeed: number }>;
+}
+
+function TechCameraController({ focusedPlanet, planetsData }: TechCameraCtrlProps) {
+  useFrame((state) => {
+    let targetPos = new THREE.Vector3(0, 5, 8);
+    let targetLook = new THREE.Vector3(0, 0, 0);
+
+    if (focusedPlanet) {
+      // Find planet data
+      const data = planetsData.find((p) => p.name === focusedPlanet);
+      if (data) {
+        const time = state.clock.getElapsedTime();
+        const speedMultiplier = 0.08;
+        const angle = time * data.orbitSpeed * speedMultiplier;
+        
+        const px = Math.sin(angle) * data.orbitRadius;
+        const pz = Math.cos(angle) * data.orbitRadius;
+        const py = Math.sin(time * 0.8 + data.orbitRadius) * 0.4 + data.yOffset;
+
+        // Position camera to focus close up on the planet and its moons
+        targetPos.set(px * 1.1, py + 1.6, pz * 1.1 + 2.0);
+        targetLook.set(px, py, pz);
+      }
+    }
+
+    // Smoothly LERP camera position and rotation
+    state.camera.position.lerp(targetPos, 0.05);
+    
+    // Smoothly orient camera lookAt
+    const currentLook = new THREE.Vector3(0, 0, 0);
+    state.camera.getWorldDirection(currentLook);
+    // Add current camera position to direction to find where camera is currently pointing
+    currentLook.add(state.camera.position);
+    
+    const intermediateLook = new THREE.Vector3().lerpVectors(currentLook, targetLook, 0.05);
+    state.camera.lookAt(intermediateLook);
+  });
+
+  return null;
 }
 
 interface TechPlanetariumProps {
@@ -123,6 +232,8 @@ interface TechPlanetariumProps {
 }
 
 export const TechPlanetarium: React.FC<TechPlanetariumProps> = ({ onSelectTech }) => {
+  const [focusedPlanet, setFocusedPlanet] = useState<string | null>(null);
+
   const planetsData = [
     {
       name: 'FRONTEND',
@@ -166,28 +277,37 @@ export const TechPlanetarium: React.FC<TechPlanetariumProps> = ({ onSelectTech }
     <div className="w-full h-[400px] md:h-[480px] relative border border-white/10 rounded-2xl bg-black/50 backdrop-blur-md overflow-hidden shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
       {/* Instruction text overlay */}
       <div className="absolute top-4 left-4 z-10 font-mono text-[9px] text-slate-500 uppercase tracking-widest pointer-events-none">
-        🪐 Tech Stack Planetarium // Hover to inspect // Click to lock data
+        🪐 Tech Stack Planetarium // Click planet to lock zoom
       </div>
 
-      <Canvas camera={{ position: [0, 5, 8], fov: 60 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[0, 0, 0]} intensity={4} color="#ffffff" />
+      {focusedPlanet && (
+        <button
+          onClick={() => setFocusedPlanet(null)}
+          className="absolute bottom-4 right-4 z-20 px-2.5 py-1.5 border border-cyber-cyan/30 rounded bg-black/80 hover:bg-cyber-cyan/10 text-cyber-cyan font-mono text-[9px] cursor-pointer transition-all"
+        >
+          Reset Orbit View
+        </button>
+      )}
+
+      <Canvas camera={{ position: [0, 5, 8], fov: 60 }} gl={{ antialias: true, alpha: true }}>
+        <ambientLight intensity={0.5} />
+        <pointLight position={[0, 0, 0]} intensity={4.5} color="#ffffff" />
         <pointLight position={[10, 10, 10]} intensity={1.5} color="#00f0ff" />
         <pointLight position={[-10, -10, -10]} intensity={1} color="#ff007f" />
 
         {/* Central Core Sun (Software Systems Core) */}
         <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-          <mesh>
+          <mesh onClick={() => setFocusedPlanet(null)}>
             <sphereGeometry args={[0.9, 32, 32]} />
             <meshStandardMaterial
               color="#ffffff"
               emissive="#00f0ff"
-              emissiveIntensity={1.2}
+              emissiveIntensity={1.3}
               roughness={0.1}
             />
           </mesh>
           <Html distanceFactor={8} position={[0, 0, 0]} center>
-            <div className="px-2 py-0.5 rounded bg-black/90 border border-cyber-green/50 text-cyber-green text-[9px] font-mono font-bold tracking-wider shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+            <div className="px-2 py-0.5 rounded bg-black/90 border border-cyber-green/50 text-cyber-green text-[9px] font-mono font-bold tracking-wider shadow-[0_0_15px_rgba(57,255,20,0.3)] select-none">
               SANJAI_OS
             </div>
           </Html>
@@ -196,10 +316,14 @@ export const TechPlanetarium: React.FC<TechPlanetariumProps> = ({ onSelectTech }
         {/* Planet orbits visual rings */}
         {planetsData.map((p, i) => (
           <mesh key={i} rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[p.orbitRadius - 0.01, p.orbitRadius + 0.01, 64]} />
+            <ringGeometry args={[p.orbitRadius - 0.015, p.orbitRadius + 0.015, 64]} />
             <meshBasicMaterial color={p.color} transparent opacity={0.06} side={THREE.DoubleSide} />
           </mesh>
         ))}
+
+        {/* Cinematic Camera Control */}
+        {/* @ts-ignore */}
+        <TechCameraController focusedPlanet={focusedPlanet} planetsData={planetsData} />
 
         {/* Planets */}
         {planetsData.map((planet, index) => (
@@ -213,6 +337,8 @@ export const TechPlanetarium: React.FC<TechPlanetariumProps> = ({ onSelectTech }
             yOffset={planet.yOffset}
             moons={planet.moons}
             onSelect={onSelectTech}
+            isFocused={focusedPlanet === planet.name}
+            onFocus={() => setFocusedPlanet(planet.name)}
           />
         ))}
       </Canvas>

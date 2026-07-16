@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cpu, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Cpu, AlertCircle, CheckCircle, Info, FileText } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 // Context & Canvas
@@ -31,7 +31,10 @@ function AppContent() {
     removeNotification, 
     activeWindow, 
     setActiveWindow, 
-    playAudioCue 
+    playAudioCue,
+    addNotification,
+    isRecruiterMode,
+    setIsRecruiterMode
   } = useOS();
 
   // OS Window Toggles
@@ -47,15 +50,13 @@ function AppContent() {
   const [bootLogs, setBootLogs] = useState<string[]>([]);
 
   const bootSequence = [
-    'INITIALIZING SANJAI_OS SYSTEM KERNEL...',
-    'LOADING VIRTUAL FILESYSTEM MODULES...',
-    'CONNECTING TO COIMBATORE_GEOLOCATION_NODE...',
-    'RETRIEVING KONGU_ENGINEERING_COLLEGE RECORDS...',
-    'DECRYPTING PORTFOLIO REGISTRY CREDENTIALS...',
-    'MOUNTING CORE THREE.JS WEBGL RENDER PANELS...',
-    'LOADING NEURAL CHATBOT LLM DIALOG MODELS...',
-    'STARTING WEB AUDIO procedurAL SYNTH ENGINE...',
-    'INTEGRITY VERIFICATION SUCCEEDED.'
+    'SYSTEM POWER: ONLINE [100%]',
+    'BOOT INITIALIZATION: VERIFYING INTEGRITY...',
+    'AI CORE ONLINE: LOADING DEEPMIND DIALOG MODELS...',
+    'NEURAL NETWORK CONNECTED: TECH GALAXY ORBITS STABLE...',
+    'DIGITAL TWIN ACTIVATED: RENDERING PROCEDURAL POINT CLOUD...',
+    'MISSION CONTROL READY: DISPATCHING CENTRAL HUD STREAMS...',
+    'SYSTEM INITIALIZATION COMPLETE.'
   ];
 
   // Boot Loader progress simulator
@@ -84,6 +85,11 @@ function AppContent() {
         if (calculatedIndex > logIdx && calculatedIndex < bootSequence.length) {
           setBootLogs(prevLogs => [...prevLogs, bootSequence[logIdx]]);
           logIdx = calculatedIndex;
+          playAudioCue('tap'); // Soft tick for every log loaded
+        } else {
+          if (Math.random() < 0.2) {
+            playAudioCue('dockHover'); // Random low-frequency ticks
+          }
         }
 
         return next;
@@ -100,15 +106,75 @@ function AppContent() {
     }
   }, [activeWindow]);
 
+  // Play tab change window sounds
+  useEffect(() => {
+    if (isBooting) return;
+    if (activeTab && activeTab !== 'hero') {
+      playAudioCue('open');
+    } else if (activeTab === 'hero') {
+      playAudioCue('shutdown');
+    }
+  }, [activeTab, isBooting]);
+
+  // Play terminal window sounds
+  useEffect(() => {
+    if (isBooting) return;
+    if (isTerminalOpen) {
+      playAudioCue('open');
+    } else {
+      playAudioCue('shutdown');
+    }
+  }, [isTerminalOpen, isBooting]);
+
+  // Play copilot window sounds
+  useEffect(() => {
+    if (isBooting) return;
+    if (isAICopilotOpen) {
+      playAudioCue('open');
+    } else {
+      playAudioCue('shutdown');
+    }
+  }, [isAICopilotOpen, isBooting]);
+
   // Play boot sound immediately after booting overlay vanishes
   useEffect(() => {
     if (!isBooting) {
-      // Small timeout to bypass initial browser gesture constraint
       setTimeout(() => {
         playAudioCue('boot');
       }, 200);
     }
   }, [isBooting]);
+
+  // Konami Code Event Listener Easter Egg
+  useEffect(() => {
+    const konamiCode = [
+      'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+      'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+      'b', 'a'
+    ];
+    let konamiIndex = 0;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+          playAudioCue('boot');
+          confetti({
+            particleCount: 220,
+            spread: 120,
+            colors: ['#00f0ff', '#ff007f', '#39ff14', '#9d4edd']
+          });
+          addNotification('🔓 DEVELOPER_MODE OVERRIDE: Guest node upgraded to ROOT ACCESS!', 'success');
+          konamiIndex = 0;
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [addNotification, playAudioCue]);
 
   return (
     <div className={`min-h-screen text-slate-100 font-sans relative overflow-x-hidden ${
@@ -207,80 +273,166 @@ function AppContent() {
         
         {/* Floating Core Application windows stack */}
         <AnimatePresence mode="wait">
-          {activeTab === 'hero' && (
+          {isRecruiterMode ? (
             <motion.div
-              key="hero-dashboard"
-              initial={{ opacity: 0, y: 20 }}
+              key="recruiter-mode"
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="w-full"
+              exit={{ opacity: 0, y: -15 }}
+              className="w-full space-y-16 pb-20 font-mono"
             >
-              <HeroDashboard 
-                setIsTerminalOpen={setIsTerminalOpen}
-                setActiveTab={setActiveTab}
-              />
+              {/* Recruiter Header profile brief */}
+              <div className="p-8 border border-cyber-purple/20 rounded-2xl bg-slate-950/75 backdrop-blur-xl relative overflow-hidden space-y-6">
+                <div className="absolute top-0 right-0 p-4 text-[8px] text-cyber-purple uppercase tracking-widest font-bold">
+                  [RECRUITER_MODE_ACTIVE]
+                </div>
+                <div className="space-y-2">
+                  <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
+                    SANJAIKUMAR P K
+                  </h1>
+                  <p className="text-cyber-cyan text-xs tracking-wider font-semibold">
+                    FULL STACK & AI WEB ARCHITECT // COIMBATORE, TN
+                  </p>
+                </div>
+                <p className="text-slate-300 text-xs md:text-sm max-w-[750px] leading-relaxed font-sans">
+                  B.Sc. Software Systems graduate (2025) from Kongu Engineering College with 8.05 CGPA. Specialized in full-stack architecture, building immersive, context-aware web tools, and containerized scale. Experienced with React, TypeScript, Python, Docker, and WebGL visualizations.
+                </p>
+                <div className="flex flex-wrap gap-4 pt-1">
+                  <button
+                    onClick={() => {
+                      playAudioCue('click');
+                      window.open('https://github.com/sanjaikumarkaleeswaran', '_blank');
+                      addNotification('Initiating CV Resume download stream', 'success');
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-cyber-green text-slate-950 font-bold text-xs flex items-center gap-2 cursor-pointer transition-all hover:scale-102"
+                  >
+                    <FileText size={14} />
+                    <span>DOWNLOAD RESUME CV</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      playAudioCue('click');
+                      setIsRecruiterMode(false);
+                    }}
+                    className="px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:border-cyber-cyan/50 text-slate-300 hover:text-white text-xs cursor-pointer transition-all"
+                  >
+                    <span>RETURN TO SYSTEM OS</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Projects Grid */}
+              <div className="space-y-4">
+                <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <span className="text-cyber-cyan">#</span> 01 // SELECTED ENGINEERING PROJECTS
+                </h2>
+                <ProjectsExplorer />
+              </div>
+
+              {/* Technical Capabilities Matrix */}
+              <div className="space-y-4">
+                <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <span className="text-cyber-purple">#</span> 02 // TECHNICAL CAPABILITIES MATRIX
+                </h2>
+                <div className="p-6 border border-white/5 rounded-2xl bg-slate-950/40 backdrop-blur-md">
+                  <SkillsSection />
+                </div>
+              </div>
+
+              {/* Experience Timeline */}
+              <div className="space-y-4">
+                <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <span className="text-cyber-magenta">#</span> 03 // PROFESSIONAL CHRONOLOGY
+                </h2>
+                <CareerChronology />
+              </div>
+
+              {/* Contact Hub */}
+              <div className="space-y-4">
+                <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <span className="text-cyber-green">#</span> 04 // RECRUITMENT TRANSMIT NODE
+                </h2>
+                <ContactHub />
+              </div>
             </motion.div>
-          )}
+          ) : (
+            <>
+              {activeTab === 'hero' && (
+                <motion.div
+                  key="hero-dashboard"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="w-full"
+                >
+                  <HeroDashboard 
+                    setIsTerminalOpen={setIsTerminalOpen}
+                    setActiveTab={setActiveTab}
+                  />
+                </motion.div>
+              )}
 
-          {activeTab === 'about' && (
-            <OSWindow
-              key="window-about"
-              id="about"
-              title="bio_specs_registry.txt"
-              isOpen={true}
-              onClose={() => setActiveWindow('hero')}
-            >
-              <AboutSpecs />
-            </OSWindow>
-          )}
+              {activeTab === 'about' && (
+                <OSWindow
+                  key="window-about"
+                  id="about"
+                  title="bio_specs_registry.txt"
+                  isOpen={true}
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <AboutSpecs />
+                </OSWindow>
+              )}
 
-          {activeTab === 'skills' && (
-            <OSWindow
-              key="window-skills"
-              id="skills"
-              title="technical_capabilities_planetarium.exe"
-              isOpen={true}
-              widthClass="max-w-[1000px]"
-              onClose={() => setActiveWindow('hero')}
-            >
-              <SkillsSection />
-            </OSWindow>
-          )}
+              {activeTab === 'skills' && (
+                <OSWindow
+                  key="window-skills"
+                  id="skills"
+                  title="technical_capabilities_planetarium.exe"
+                  isOpen={true}
+                  widthClass="max-w-[1000px]"
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <SkillsSection />
+                </OSWindow>
+              )}
 
-          {activeTab === 'projects' && (
-            <OSWindow
-              key="window-projects"
-              id="projects"
-              title="software_artistry_registry.db"
-              isOpen={true}
-              onClose={() => setActiveWindow('hero')}
-            >
-              <ProjectsExplorer />
-            </OSWindow>
-          )}
+              {activeTab === 'projects' && (
+                <OSWindow
+                  key="window-projects"
+                  id="projects"
+                  title="software_artistry_registry.db"
+                  isOpen={true}
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <ProjectsExplorer />
+                </OSWindow>
+              )}
 
-          {activeTab === 'timeline' && (
-            <OSWindow
-              key="window-timeline"
-              id="timeline"
-              title="academic_chronology_timeline.sys"
-              isOpen={true}
-              onClose={() => setActiveWindow('hero')}
-            >
-              <CareerChronology />
-            </OSWindow>
-          )}
+              {activeTab === 'timeline' && (
+                <OSWindow
+                  key="window-timeline"
+                  id="timeline"
+                  title="academic_chronology_timeline.sys"
+                  isOpen={true}
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <CareerChronology />
+                </OSWindow>
+              )}
 
-          {activeTab === 'contact' && (
-            <OSWindow
-              key="window-contact"
-              id="contact"
-              title="contact_directive_transmit.cfg"
-              isOpen={true}
-              onClose={() => setActiveWindow('hero')}
-            >
-              <ContactHub />
-            </OSWindow>
+              {activeTab === 'contact' && (
+                <OSWindow
+                  key="window-contact"
+                  id="contact"
+                  title="contact_directive_transmit.cfg"
+                  isOpen={true}
+                  onClose={() => setActiveWindow('hero')}
+                >
+                  <ContactHub />
+                </OSWindow>
+              )}
+            </>
           )}
         </AnimatePresence>
 
