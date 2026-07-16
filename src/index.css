@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-bg: #030014;
+  --color-cyber-card: rgba(10, 10, 25, 0.6);
+  --color-cyber-cyan: #00f0ff;
+  --color-cyber-magenta: #ff007f;
+  --color-cyber-purple: #9d4edd;
+  --color-cyber-green: #39ff14;
+  
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "Orbitron", monospace;
+}
+
+@layer base {
+  html, body {
+    background-color: #030014;
+    color: #e2e8f0;
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+  }
+}
+
+/* Hide default cursor on desktop when custom cursor loads */
+html.custom-cursor-active,
+html.custom-cursor-active * {
+  cursor: none !important;
+}
+
+/* Glassmorphism custom scrollbar styling */
+.custom-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.25);
+  border-radius: 4px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.50);
+}
+
+/* Retro CRT monitor scanning effect */
+.crt-overlay {
+  pointer-events: none;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 3px, 3px 100%;
+}
+

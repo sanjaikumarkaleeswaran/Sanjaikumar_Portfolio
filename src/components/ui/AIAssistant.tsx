@@ -1,0 +1,189 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Sparkles, User, RefreshCw } from 'lucide-react';
+import { useOS } from '../../context/OSContext';
+
+interface Message {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+  timestamp: string;
+}
+
+export const AIAssistant: React.FC = () => {
+  const { playAudioCue } = useOS();
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'init',
+      sender: 'ai',
+      text: 'Greetings. I am Sanjaikumar\'s Neural Copilot agent. Ask me about his full-stack work, UI/UX prototyping projects, or tech stack proficiencies.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  const handleSend = (textToSend: string) => {
+    if (!textToSend.trim() || isTyping) return;
+
+    playAudioCue('click');
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // User message
+    const userMsg: Message = {
+      id: Math.random().toString(),
+      sender: 'user',
+      text: textToSend.trim(),
+      timestamp
+    };
+    
+    setMessages((prev) => [...prev, userMsg]);
+    setInput('');
+    setIsTyping(true);
+
+    // AI typing & answering simulation
+    setTimeout(() => {
+      let replyText = "I'm analyzing the data request. Try asking about his projects, technical skills, or education details.";
+      const query = textToSend.toLowerCase();
+
+      if (query.includes('hello') || query.includes('hi') || query.includes('hey')) {
+        replyText = "System connection active. I can retrieve and analyze Sanjaikumar P K's resume data. Let me know what you would like to inspect.";
+      } else if (query.includes('project') || query.includes('work') || query.includes('portfolio')) {
+        replyText = "Sanjaikumar has developed several key projects: \n\n" +
+          "1. **Nova (AI-RFP System)**: A React + TypeScript enterprise system with form validation, workflow engines, and QA test validations.\n" +
+          "2. **Aquarium Commerce**: A full-stack Dockerized e-commerce app optimizing SQL queries by ~30%.\n" +
+          "3. **Mindwave (Personal AI Life OS)**: A self-hosted context-aware productivity app integrated with MongoDB and external AI APIs.";
+      } else if (query.includes('skill') || query.includes('tech') || query.includes('language')) {
+        replyText = "His core technical stack features:\n\n" +
+          "• **Frontend**: React.js, TypeScript, JavaScript, CSS3, TailwindCSS, Framer Motion.\n" +
+          "• **Backend & DB**: Python (FastAPI/Django), REST APIs, SQL, MongoDB.\n" +
+          "• **DevOps & Process**: Docker containerization, Git pipelines, AWS (in progress), Linux admin, and Agile SDLC sprints.";
+      } else if (query.includes('contact') || query.includes('email') || query.includes('reach') || query.includes('phone')) {
+        replyText = "You can establish direct contact with Sanjaikumar P K through these channels:\n\n" +
+          "• **Email**: sanjaikumarkaleeswarann@gmail.com\n" +
+          "• **Phone**: +91-8667010490\n" +
+          "• **GitHub**: github.com/sanjaikumarkaleeswaran\n" +
+          "• **Location**: Coimbatore, Tamil Nadu, India";
+      } else if (query.includes('education') || query.includes('college') || query.includes('cgpa') || query.includes('university')) {
+        replyText = "He graduated in **2025** with a **Bachelor of Science in Software Systems** from **Kongu Engineering College** (Erode, Tamil Nadu) with a solid CGPA of **8.05 / 10** and no standing arrears.";
+      } else if (query.includes('certification') || query.includes('certificate') || query.includes('aws')) {
+        replyText = "His current professional credentials include:\n\n" +
+          "• **AWS Cloud Practitioner Essentials** (AWS Skill Builder - In Progress)\n" +
+          "• **Linux Fundamentals** (Udemy)\n" +
+          "• **Computer Networking Basics** (Udemy)";
+      } else if (query.includes('who') || query.includes('about') || query.includes('sanjai')) {
+        replyText = "Sanjaikumar P K is a B.Sc. Software Systems graduate (2025) with hands-on experience building AI-powered platforms and full-stack web applications. He specializes in designing user-centric, high-fidelity interfaces and scalable backend solutions.";
+      }
+
+      const aiMsg: Message = {
+        id: Math.random().toString(),
+        sender: 'ai',
+        text: replyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages((prev) => [...prev, aiMsg]);
+      setIsTyping(false);
+      playAudioCue('success');
+    }, 1200);
+  };
+
+  const handleQuickReply = (text: string) => {
+    handleSend(text);
+  };
+
+  return (
+    <div className="flex flex-col h-[350px] bg-slate-950/40 rounded-xl overflow-hidden border border-white/5">
+      {/* Messages area */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 custom-scroll bg-black/40">
+        {messages.map((msg) => (
+          <div 
+            key={msg.id}
+            className={`flex items-start gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            {msg.sender === 'ai' && (
+              <div className="h-6 w-6 rounded-full bg-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center text-cyber-purple shrink-0">
+                <Sparkles size={11} className="animate-pulse" />
+              </div>
+            )}
+            
+            <div className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className={`p-3 rounded-2xl text-[11px] font-mono whitespace-pre-line border leading-relaxed ${
+                msg.sender === 'user'
+                  ? 'bg-cyber-cyan/10 border-cyber-cyan/35 text-slate-100 rounded-tr-none'
+                  : 'bg-slate-900/60 border-white/5 text-cyber-cyan rounded-tl-none'
+              }`}>
+                {msg.text}
+              </div>
+              <span className="text-[8px] text-slate-500 font-mono mt-1 px-1">{msg.timestamp}</span>
+            </div>
+
+            {msg.sender === 'user' && (
+              <div className="h-6 w-6 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan shrink-0">
+                <User size={11} />
+              </div>
+            )}
+          </div>
+        ))}
+        {isTyping && (
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center text-cyber-purple shrink-0 animate-spin">
+              <RefreshCw size={11} />
+            </div>
+            <div className="text-[10px] font-mono text-slate-500 animate-pulse">Neural copilot is decoding...</div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Replies */}
+      <div className="p-2.5 bg-slate-950/80 border-t border-white/5 flex gap-2 overflow-x-auto select-none custom-scroll">
+        {[
+          'Who is Sanjai?',
+          'List projects',
+          'What are his skills?',
+          'Contact info'
+        ].map((reply, i) => (
+          <button
+            key={i}
+            onClick={() => handleQuickReply(reply)}
+            disabled={isTyping}
+            className="px-2.5 py-1 rounded-full border border-white/10 hover:border-cyber-purple/40 bg-white/5 hover:bg-cyber-purple/10 text-slate-400 hover:text-cyber-purple font-mono text-[9px] transition-all whitespace-nowrap cursor-pointer shrink-0"
+          >
+            {reply}
+          </button>
+        ))}
+      </div>
+
+      {/* Input bar */}
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend(input);
+        }} 
+        className="p-3 border-t border-white/5 bg-slate-950/95 flex gap-2"
+      >
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={isTyping}
+          placeholder="Type database query..."
+          className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-1.5 font-mono text-[11px] text-white placeholder-slate-600 focus:outline-none focus:border-cyber-cyan transition-colors"
+        />
+        <button
+          type="submit"
+          disabled={isTyping}
+          className="p-2 bg-cyber-cyan/10 hover:bg-cyber-cyan/30 border border-cyber-cyan/30 rounded-lg text-cyber-cyan hover:text-white transition-all cursor-pointer flex items-center justify-center"
+        >
+          <Send size={12} />
+        </button>
+      </form>
+    </div>
+  );
+};
