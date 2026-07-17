@@ -544,6 +544,11 @@ export const HologramCore: React.FC = () => {
         
         {/* Futuristic circular scan shell */}
         <div className="relative w-24 h-24 md:w-30 md:h-30 rounded-full overflow-hidden border border-cyber-cyan/40 bg-black/60 shadow-[0_0_20px_rgba(0,240,255,0.25)]">
+          <img 
+            src="/sanjai_hologram.png" 
+            alt="Sanjai P K Hologram Scan" 
+            className="w-full h-full object-cover filter contrast-125 brightness-105 mix-blend-screen opacity-85 select-none" 
+          />
           {/* Circular scanner reticle crosshairs */}
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Center target dot */}
