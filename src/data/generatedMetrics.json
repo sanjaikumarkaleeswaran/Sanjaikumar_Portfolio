@@ -1,9 +1,30 @@
 {
-  "totalLines": 9821,
-  "tsFilesCount": 39,
+  "totalLines": 10416,
+  "tsFilesCount": 33,
   "componentsCount": 24,
-  "hooksCount": 3,
+  "hooksCount": 2,
   "dependenciesCount": 21,
-  "bundleSizeKb": "1512 KB",
-  "generatedAt": "2026-07-17T09:46:44.510Z"
+  "bundleSizeKb": "1536 KB",
+  "tsCoverage": "80.5%",
+  "projectCount": 6,
+  "technologyCount": 30,
+  "deploymentTargets": [
+    "Vercel / Render",
+    "Streamlit Cloud",
+    "Docker / Self-Hosted",
+    "AWS S3 / CloudFront / Render"
+  ],
+  "apiEndpoints": 15,
+  "githubRepos": 17,
+  "githubStars": 0,
+  "githubForks": 0,
+  "githubActivityScore": 28,
+  "primaryLanguages": [
+    "JavaScript",
+    "TypeScript",
+    "Java",
+    "Go"
+  ],
+  "buildTimeMs": "1739ms",
+  "generatedAt": "2026-07-17T14:42:14.588Z"
 }

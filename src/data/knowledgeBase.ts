@@ -128,6 +128,37 @@ Built a secured, role-based backend with linear sorting algorithms to handle per
 `
   },
   {
+    id: 'flashcard',
+    title: 'Smart Flashcard Generator',
+    category: 'projects',
+    tags: ['flashcard', 'generator', 'pdf', 'spaced-repetition', 'ai', 'openai', 'learning', 'typescript', 'mongodb'],
+    content: `## Smart Flashcard Generator
+    
+### Overview
+An AI-driven EdTech platform that automatically digests uploaded PDFs, extracts key learning concepts, compiles flashcards and notes, and schedules user reviews using spaced repetition algorithms.
+
+### Tech Stack
+* **Frontend**: React, TypeScript, TailwindCSS.
+* **Backend**: Node.js, Express, TypeScript, OpenAI API.
+* **Database**: MongoDB.
+`
+  },
+  {
+    id: 'imagecaptioning',
+    title: 'AI Image Captioning System',
+    category: 'projects',
+    tags: ['imagecaptioning', 'python', 'tensorflow', 'cnn', 'lstm', 'ai', 'vision'],
+    content: `## AI Image Captioning System
+    
+### Overview
+A deep learning computer vision pipeline designed to generate text descriptions for visual contents, utilizing vision encoders and sequence decoders.
+
+### Tech Stack
+* **Framework**: TensorFlow, Keras.
+* **Neural Layers**: CNN MobileNetV2 feature extractor, LSTM language text predictor.
+`
+  },
+  {
     id: 'experience',
     title: 'Professional Experience & Milestones',
     category: 'experience',

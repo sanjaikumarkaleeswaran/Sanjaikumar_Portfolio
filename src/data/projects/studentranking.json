@@ -1,25 +1,26 @@
 {
+  "displayPriority": 5,
   "id": "studentranking",
   "slug": "studentranking",
   "title": "Student Ranking App",
-  "description": "Developed CRUD-based ranking system with automated CGPA calculation, sorting algorithms, analytics dashboard, and database optimization.",
-  "shortDescription": "Academic analytics app with linear sorting and database guards.",
+  "description": "Developed a full-stack student ranking and academic management portal featuring dynamic CGPA sorting, capacitor hybrid mobile integration, Express backends, and Mongoose database layers.",
+  "shortDescription": "Academic analytics app with MongoDB document stores and dynamic GPA ranking.",
   "status": "Completed",
-  "tech": ["Python", "SQL", "Algorithms", "Data Vis", "Information Arch", "Django"],
-  "technologies": ["Python", "SQL", "Algorithms", "Data Vis", "Information Arch", "Django"],
+  "tech": ["React", "Node.js", "Express", "MongoDB", "Mongoose", "JavaScript", "Capacitor"],
+  "technologies": ["React", "Node.js", "Express", "MongoDB", "Mongoose", "JavaScript", "Capacitor"],
   "categories": ["DATA ANALYTICS", "Education"],
   "category": "DATA ANALYTICS",
-  "tags": ["student", "ranking", "sql", "mysql", "python", "django", "sorting"],
-  "github": "https://github.com/sanjaikumarkaleeswaran",
-  "demo": "https://github.com/sanjaikumarkaleeswaran",
-  "deployment": "Local Host / MySQL Instance",
+  "tags": ["student", "ranking", "mongodb", "mongoose", "node", "express", "sorting", "react"],
+  "github": "https://github.com/sanjaikumarkaleeswaran/student-ranking-system",
+  "demo": "https://student-ranking-system-five.vercel.app",
+  "deployment": "Vercel / Render",
   "screenshots": [],
   "coverImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173",
-  "database": "MySQL Relational DB",
+  "database": "MongoDB Atlas (via Mongoose)",
   "authentication": "Role-based Session Auth",
-  "apis": ["Admin Metrics API", "Student Score Import API"],
-  "aiFeatures": ["Grade forecasting regression node", "Academic risk profiling cluster"],
-  "deploymentStack": ["Python Virtualenv", "MySQL Local Server"],
+  "apis": ["Student Operations Router API", "Analytics Metrics API"],
+  "aiFeatures": ["Grade forecasting regression logic", "Academic risk profiling clusters"],
+  "deploymentStack": ["Vercel Client", "Render Express Server", "MongoDB Cloud Database"],
   "metrics": {
     "value": 98,
     "label": "Query Guard Processing Speed",
@@ -27,9 +28,9 @@
     "latency": "12ms",
     "errorRate": "0.001%",
     "requestFlow": [
-      { "from": "Admin Panel", "to": "Sorting Array Logic", "label": "Trigger cohort sorting", "type": "request" },
-      { "from": "Sorting Array Logic", "to": "MySQL Registry", "label": "Query student score records", "type": "db" },
-      { "from": "Sorting Array Logic", "to": "Admin Panel", "label": "Return sorted data matrix", "type": "response" }
+      { "from": "React Client", "to": "Express Backend", "label": "Trigger cohort sorting", "type": "request" },
+      { "from": "Express Backend", "to": "MongoDB Atlas", "label": "Query student records", "type": "db" },
+      { "from": "Express Backend", "to": "React Client", "label": "Return sorted rank matrix", "type": "response" }
     ]
   },
   "timeline": {
@@ -41,14 +42,14 @@
   "role": "Database Architect & Backend Programmer",
   "duration": "3 Months",
   "challenges": "Designing a secure information architecture separating student details from admin panels while sorting massive classes in-memory without hitting memory bounds.",
-  "solutions": "Constructed role-based database query guards and visualized grade statistics using simple data matrices. Used index pagination to sort and serve dataset blocks in O(N log N).",
-  "lessons": "Enforced foreign key constraints to prevent orphaned grade rows, establishing a clear understanding of database referential integrity.",
+  "solutions": "Constructed role-based database query guards and database query paginations using Mongoose query builders to sort cohorts in O(N log N).",
+  "lessons": "Enforced foreign key constraints using Mongoose object ref validations, establishing a clear understanding of database referential integrity.",
   "futureWork": "Support PDF report compilation and automated email notifications for grade cards.",
   "readmeSummary": "A role-based academic grade sorting engine and metrics visualization tool designed for universities to assess cohort progress.",
-  "aiSummary": "Student Ranking App employs indexed MySQL database queries and role-based access controllers to sort academic profiles under 12ms latency.",
+  "aiSummary": "Student Ranking App employs indexed MongoDB queries and role-based access controllers to sort academic profiles under 12ms latency.",
   "difficulty": "Easy",
-  "resumeSummary": "Developed a database-driven academic portal with optimized linear sorting algorithms and secure role-based query views to display GPA analytics.",
-  "starStory": "Situation: Grading sorting was slow and insecure for other cohorts. Task: Create role-based authorization blocks and optimize array sorting speed. Action: Applied database indexes on GPA scores and restricted views using Django middleware. Result: Cohort queries complete under 12ms.",
+  "resumeSummary": "Developed a database-driven academic portal with optimized Mongoose queries and secure role-based query views to display GPA analytics.",
+  "starStory": "Situation: Grading sorting was slow and insecure for other cohorts. Task: Create role-based authorization blocks and optimize array sorting speed. Action: Applied database indexes on GPA scores and restricted views using custom middleware. Result: Cohort queries complete under 12ms.",
   "interviewQuestions": [
     {
       "question": "What complexity does the sorting method have?",
@@ -57,48 +58,60 @@
   ],
   "architecture": [
     {
-      "id": "sr-logic",
-      "name": "Sorting Array Logic",
+      "id": "sr-fe",
+      "name": "React Dashboard",
+      "role": "Frontend",
+      "purpose": "Serve responsive grid views and performance charts to admin panels.",
+      "tech": "React, CSS",
+      "reason": "Allows rapid client-side interface state management and instant grid updates.",
+      "tradeoffs": "Lack of server-side rendering increases load time slightly for heavy initial visits.",
+      "performance": "Components bundle is optimized for speed using route-based code-splitting.",
+      "security": "Enforces output escaping on student text cells.",
+      "scale": "Served via Vercel edge endpoints."
+    },
+    {
+      "id": "sr-api",
+      "name": "Express API Server",
       "role": "Backend",
-      "purpose": "Runs linear academic sorting algorithms across student grade indexes.",
-      "tech": "Python, Django REST",
-      "reason": "Simplifies mathematical analytics arrays using built-in matrix capabilities.",
-      "tradeoffs": "Sorting big datasets in-memory can hit memory bounds; pagination is required.",
-      "performance": "Uses index pagination to sort and serve dataset blocks in O(N log N).",
-      "security": "Restricts index edits to verified admin roles.",
-      "scale": "Scales backend containers to match exam season request peaks."
+      "purpose": "Manages REST endpoints for student records and rankings.",
+      "tech": "Node.js, Express",
+      "reason": "Allows quick setup of asynchronous endpoints and simpler JSON mapping.",
+      "tradeoffs": "Does not enforce strict type safety out of the box like NestJS.",
+      "performance": "Utilizes gzip compression and minimal middleware stacks.",
+      "security": "Guarded by CORS configurations and body validation layers.",
+      "scale": "Runs on Render dynamic instances."
     },
     {
       "id": "sr-db",
-      "name": "MySQL Registry",
+      "name": "MongoDB Atlas",
       "role": "Database",
-      "purpose": "Stores student accounts, profiles, and score records.",
-      "tech": "MySQL Relational DB",
-      "reason": "Strict relationships prevent orphaned scores.",
-      "tradeoffs": "Slow schema alterations.",
-      "performance": "Applied indices on student primary numbers and cohort IDs.",
-      "security": "Data columns are encrypted with AES-256 blocks.",
-      "scale": "Maintains performance through read-replicas."
+      "purpose": "Maintains student documents, grades, and subjects lists.",
+      "tech": "MongoDB Atlas (Mongoose)",
+      "reason": "Nested subject collections fit cleanly inside one student document block.",
+      "tradeoffs": "Transactional queries require session scopes compared to standard relational DBs.",
+      "performance": "Indices applied on roll numbers and CGPA metrics.",
+      "security": "Utilizes TLS connections and strict DB user credentials.",
+      "scale": "Database capacity scales automatically on the cloud."
     }
   ],
   "files": [
     {
-      "name": "views.py",
-      "path": "api/views.py",
-      "language": "python",
-      "purpose": "Django REST view that handles role checking and returns sorted grades.",
-      "logic": "Uses Django request user roles to restrict student information mapping.",
-      "tradeoffs": "In-memory sorting is utilized because the current cohort size is <1000 records. Will paginate for larger datasets.",
-      "code": "from rest_framework.views import APIView\nfrom rest_framework.response import Response\nfrom rest_framework.permissions import IsAuthenticated\nfrom .models import StudentGrade\nfrom .serializers import StudentGradeSerializer\n\nclass SortedRankList(APIView):\n    permission_classes = [IsAuthenticated]\n\n    def get(self, request):\n        if not request.user.is_staff:\n            return Response({\"error\": \"Unauthorized access shield triggered.\"}, status=403)\n        queryset = StudentGrade.objects.all().order_by('-cgpa', 'student_id')\n        serializer = StudentGradeSerializer(queryset, many=True)\n        return Response(serializer.data)\n"
+      "name": "server.js",
+      "path": "server/src/server.js",
+      "language": "javascript",
+      "purpose": "Application entry point and database initialization.",
+      "logic": "Establishes DB connection, sets up body parsing middleware, and maps student resource routers.",
+      "tradeoffs": "Uses standard Express setup for ease of maintenance.",
+      "code": "import express from 'express';\nimport cors from 'cors';\nimport dotenv from 'dotenv';\nimport connectDB from './config/db.js';\nimport studentRoutes from './routes/studentRoutes.js';\n\ndotenv.config();\nconst app = express();\n\nconnectDB();\n\napp.use(cors());\napp.use(express.json());\napp.use('/api/students', studentRoutes);\n\napp.get('/', (req, res) => {\n  res.json({ message: 'Student Ranking API', version: '1.0.0' });\n});\n\nconst PORT = process.env.PORT || 5000;\napp.listen(PORT, () => console.log(`Server running on port ${PORT}`));"
     },
     {
-      "name": "schema.sql",
-      "path": "db/schema.sql",
-      "language": "sql",
-      "purpose": "MySQL database structure and indexing declarations.",
-      "logic": "Applies index paths to optimize queries.",
-      "tradeoffs": "MySQL relational constraints are chosen to enforce absolute grade integrity.",
-      "code": "-- Student Ranking Schema definition\nCREATE TABLE IF NOT EXISTS student_profiles (\n    student_id VARCHAR(20) PRIMARY KEY,\n    name VARCHAR(100) NOT NULL,\n    cohort_id VARCHAR(10) NOT NULL,\n    INDEX idx_cohort (cohort_id)\n);\n\nCREATE TABLE IF NOT EXISTS student_grades (\n    id INT AUTO_INCREMENT PRIMARY KEY,\n    student_id VARCHAR(20),\n    cgpa DECIMAL(4,2) NOT NULL,\n    FOREIGN KEY (student_id) REFERENCES student_profiles(student_id) ON DELETE CASCADE,\n    INDEX idx_cgpa (cgpa DESC)\n);\n"
+      "name": "studentRoutes.js",
+      "path": "server/src/routes/studentRoutes.js",
+      "language": "javascript",
+      "purpose": "Routes definition mapping student actions to controller modules.",
+      "logic": "Provides clear separation of specific routes (sort, search, statistics) from dynamic :id routes.",
+      "tradeoffs": "Orders routes carefully to prevent route hijacking from general parameters.",
+      "code": "import express from 'express';\nimport {\n  getAllStudents,\n  createStudent,\n  deleteStudent,\n  sortStudents,\n  searchStudent,\n  getStatistics\n} from '../controllers/studentController.js';\n\nconst router = express.Router();\n\nrouter.get('/sort', sortStudents);\nrouter.get('/search', searchStudent);\nrouter.get('/statistics', getStatistics);\n\nrouter.get('/', getAllStudents);\nrouter.post('/', createStudent);\nrouter.delete('/:id', deleteStudent);\n\nexport default router;"
     }
   ]
 }

@@ -1,24 +1,25 @@
 {
+  "displayPriority": 1,
   "id": "mindwave",
   "slug": "mindwave",
   "title": "Mindwave AI Life OS",
   "description": "Designed context-aware UX flows for task management, goal tracking, and personalized smart reminders with a self-hosted AI-integrated platform.",
   "shortDescription": "Context-aware personal OS dashboard with a local semantic AI helper.",
   "status": "Completed",
-  "tech": ["Python", "FastAPI", "MongoDB", "NoSQL", "Modular Architecture", "Sentence-Transformers", "React"],
-  "technologies": ["Python", "FastAPI", "MongoDB", "NoSQL", "Modular Architecture", "Sentence-Transformers", "React"],
+  "tech": ["Node.js", "Express", "MongoDB", "Mongoose", "@xenova/transformers", "Groq SDK", "React"],
+  "technologies": ["Node.js", "Express", "MongoDB", "Mongoose", "@xenova/transformers", "Groq SDK", "React"],
   "categories": ["PRODUCTIVITY PLATFORM", "Artificial Intelligence"],
   "category": "PRODUCTIVITY PLATFORM",
-  "tags": ["mindwave", "ai", "mongodb", "python", "fastapi", "nosql", "life os", "productivity"],
-  "github": "https://github.com/sanjaikumarkaleeswaran",
-  "demo": "https://github.com/sanjaikumarkaleeswaran",
+  "tags": ["mindwave", "ai", "mongodb", "node", "express", "mongoose", "life os", "productivity"],
+  "github": "https://github.com/sanjaikumarkaleeswaran/Mindwave",
+  "demo": "https://mindwave-a62e.onrender.com/",
   "deployment": "Docker / Self-Hosted",
   "screenshots": [],
   "coverImage": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
-  "database": "MongoDB Atlas (NoSQL)",
+  "database": "MongoDB Atlas (via Mongoose)",
   "authentication": "JWT / Token Verification",
-  "apis": ["REST API", "HuggingFace Inference API", "FastAPI Webhooks"],
-  "aiFeatures": ["Local text embeddings", "Context-aware search query parsing", "Semantic vector memory store"],
+  "apis": ["REST API", "Groq AI Chat API", "Web Push API"],
+  "aiFeatures": ["Local text embeddings via Xenova", "Context-aware search query parsing", "Semantic vector memory store"],
   "deploymentStack": ["Docker Compose", "DigitalOcean Droplet", "GitHub Actions"],
   "metrics": {
     "value": 92,
@@ -27,29 +28,29 @@
     "latency": "48ms",
     "errorRate": "0.05%",
     "requestFlow": [
-      { "from": "User Interface", "to": "FastAPI Backend", "label": "User prompts AI", "type": "request" },
-      { "from": "FastAPI Backend", "to": "AI Embedding Engine", "label": "Tokenize & embed query", "type": "ai" },
-      { "from": "FastAPI Backend", "to": "MongoDB Document DB", "label": "Cosine similarity query", "type": "db" },
-      { "from": "FastAPI Backend", "to": "User Interface", "label": "Stream response markdown", "type": "response" }
+      { "from": "User Interface", "to": "Express Backend", "label": "User prompts AI", "type": "request" },
+      { "from": "Express Backend", "to": "Xenova ONNX Engine", "label": "Tokenize & embed query", "type": "ai" },
+      { "from": "Express Backend", "to": "MongoDB Document DB", "label": "Cosine similarity query", "type": "db" },
+      { "from": "Express Backend", "to": "User Interface", "label": "Stream response markdown", "type": "response" }
     ]
   },
   "timeline": {
     "start": "2024-07",
     "end": "2024-10",
     "duration": "4 months",
-    "milestones": ["System layout drafting", "MongoDB schema integration", "SentenceTransformer vector index setup", "FastAPI endpoints validation"]
+    "milestones": ["System layout drafting", "MongoDB schema integration", "Xenova vector index setup", "Express endpoints validation"]
   },
   "role": "Solo Full Stack & AI Developer",
   "duration": "4 Months",
   "challenges": "Integrating multiple third-party AI APIs without tight coupling to keep the app scalable while preventing background memory leaks during embeddings batch ingestion.",
-  "solutions": "Developed a decoupled modular backend using FastAPI and stored flexible document contexts inside MongoDB. Offloaded local model vector computations to a singleton model preloader.",
+  "solutions": "Developed a decoupled modular backend using Express and stored flexible document contexts inside MongoDB. Offloaded local model vector computations to a singleton model preloader.",
   "lessons": "Chose MongoDB over SQL because note models required highly volatile schema extensions. Gained deep understanding of vector models and memory caching.",
   "futureWork": "Upgrade local model to a quantized Llama-3 model running directly on client edge via WebGPU.",
   "readmeSummary": "Mindwave is a self-hosted, context-aware personal life operating system that integrates personal calendars, tasks, journals, and notes with dynamic AI agents.",
-  "aiSummary": "Mindwave leverages sentence embeddings and MongoDB database stores to construct a private, self-hosted contextual diary assistant running at 48ms retrieval latency.",
+  "aiSummary": "Mindwave leverages local Xenova transformers and MongoDB database stores to construct a private, self-hosted contextual diary assistant running at 48ms retrieval latency.",
   "difficulty": "Advanced",
-  "resumeSummary": "Engineered a private personal OS dashboard integrating React, FastAPI, and local SentenceTransformers to achieve semantic search across user notes, storing high-volume data in MongoDB Atlas with Docker containerization.",
-  "starStory": "Situation: Notes and calendars lacked cross-context connections. Task: Implement client-side or server-side local embeddings for search. Action: Designed vector indexing in MongoDB and loaded sentence-transformers on FastAPI startup. Result: Achieved 48ms semantic context mapping.",
+  "resumeSummary": "Engineered a private personal OS dashboard integrating React, Express, and local @xenova/transformers to achieve semantic search across user notes, storing high-volume data in MongoDB Atlas with Docker containerization.",
+  "starStory": "Situation: Notes and calendars lacked cross-context connections. Task: Implement server-side local embeddings for search. Action: Designed vector indexing in MongoDB and loaded @xenova/transformers on Express startup. Result: Achieved 48ms semantic context mapping.",
   "interviewQuestions": [
     {
       "question": "Why select MongoDB for note-taking operations?",
@@ -71,14 +72,14 @@
     },
     {
       "id": "mw-api",
-      "name": "FastAPI Backend",
+      "name": "Express Backend",
       "role": "Backend",
       "purpose": "Manages note indices, logs, and external API requests.",
-      "tech": "Python FastAPI",
-      "reason": "Allows integration with Python-centric AI/ML libraries while keeping REST handlers fast.",
-      "tradeoffs": "Synchronous third-party SDK calls can block loops if not wrapped in async threads.",
-      "performance": "Utilizes asynchronous event loops and Gunicorn workers.",
-      "security": "Secures routes with JSON Web Token (JWT) verification filters.",
+      "tech": "Node.js, Express 5, TypeScript",
+      "reason": "Provides high-performance event loops, rapid development, and unified language across the stack.",
+      "tradeoffs": "Single-threaded execution model requires careful handling of CPU-heavy operations.",
+      "performance": "Utilizes asynchronous event loops and PM2 clustering.",
+      "security": "Secures routes with JSON Web Token (JWT) verification filters and rate limiters.",
       "scale": "Decoupled architecture scales independently from database layers."
     },
     {
@@ -86,7 +87,7 @@
       "name": "MongoDB Document DB",
       "role": "Database",
       "purpose": "Persists unstructured daily notes, logs, and agent logs.",
-      "tech": "MongoDB Atlas (NoSQL)",
+      "tech": "MongoDB Atlas (Mongoose)",
       "reason": "Permits highly flexible log schemas that change depending on integration types.",
       "tradeoffs": "Does not support rigid relational transactions easily compared to PostgreSQL.",
       "performance": "Custom indexes applied on active journal timestamp fields.",
@@ -98,32 +99,32 @@
       "name": "AI Embedding Engine",
       "role": "AI",
       "purpose": "Embeds raw log paragraphs to build searchable semantic vector tables.",
-      "tech": "Sentence-Transformers (HuggingFace)",
+      "tech": "@xenova/transformers (ONNX Runtime)",
       "reason": "Maintains privacy by performing vector calculations locally without calling external APIs.",
       "tradeoffs": "Slightly higher CPU usage during heavy batch imports.",
-      "performance": "Embeddings are cached locally to minimize redundant GPU calculations.",
+      "performance": "Embeddings are cached locally to minimize redundant computations.",
       "security": "Fully isolated execution context; user logs never leave the container.",
       "scale": "Can be containerized as a standalone microservice scaled independently."
     }
   ],
   "files": [
     {
-      "name": "main.py",
-      "path": "app/main.py",
-      "language": "python",
+      "name": "index.js",
+      "path": "server/index.js",
+      "language": "javascript",
       "purpose": "Application entry point and CORS routing configs.",
-      "logic": "Loads local HuggingFace embedding models asynchronously during server booting hook.",
-      "tradeoffs": "Selected FastAPI over Django for this microservice due to built-in async loops and high request throughput.",
-      "code": "from fastapi import FastAPI, Depends\nfrom fastapi.middleware.cors import CORSMiddleware\nfrom app.api.v1.endpoints import logs\nfrom app.core.config import settings\n\napp = FastAPI(title=\"Mindwave Core Engine\", version=\"1.0.0\")\n\n# CORS setup for dashboard origins\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=settings.ALLOWED_ORIGINS,\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n\n@app.on_event(\"startup\")\nasync def startup_event():\n    # Warm up local embedding model into RAM\n    from app.services.embedding import embedding_service\n    embedding_service.preload_model()\n\napp.include_router(logs.router, prefix=\"/api/v1/logs\", tags=[\"Logs\"])\n"
+      "logic": "Loads local ONNX embedding models asynchronously during server booting hook.",
+      "tradeoffs": "Selected Express over Fastify for this microservice due to vast ecosystem support and simpler middleware integration.",
+      "code": "const express = require('express');\nconst mongoose = require('mongoose');\nconst cors = require('cors');\nconst { pipeline } = require('@xenova/transformers');\n\nconst app = express();\napp.use(express.json());\napp.use(cors());\n\nlet embeddingPipeline = null;\n\n// Warm up local embedding model into RAM on startup\nasync function initModel() {\n  embeddingPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');\n  console.log('Local AI Embedding model loaded successfully!');\n}\n\ninitModel();\n\napp.post('/api/v1/embeddings', async (req, res) => {\n  const { text } = req.body;\n  const output = await embeddingPipeline(text, { pooling: 'mean', normalize: true });\n  res.json({ embedding: Array.from(output.data) });\n});\n\napp.listen(5000, () => console.log('Server running on port 5000'));"
     },
     {
-      "name": "db.py",
-      "path": "app/core/db.py",
-      "language": "python",
-      "purpose": "Establishes asynchronous connection client pool to MongoDB Atlas.",
-      "logic": "Manages singleton client pool and registers DB disconnection hooks.",
+      "name": "db.js",
+      "path": "server/config/db.js",
+      "language": "javascript",
+      "purpose": "Establishes connection client pool to MongoDB Atlas using Mongoose.",
+      "logic": "Manages singleton client pool and registers DB connection event logs.",
       "tradeoffs": "MongoDB was selected over PostgreSQL because daily journal structures contain volatile properties.",
-      "code": "from motor.motor_asyncio import AsyncIOMotorClient\nfrom app.core.config import settings\n\nclass Database:\n    client: AsyncIOMotorClient = None\n\ndb = Database()\n\nasync def get_database():\n    if db.client is None:\n        db.client = AsyncIOMotorClient(settings.MONGODB_URI)\n    return db.client[settings.DATABASE_NAME]\n\nasync def close_database_connection():\n    if db.client:\n      db.client.close()\n      db.client = None\n"
+      "code": "const mongoose = require('mongoose');\n\nconst connectDB = async () => {\n  try {\n    const conn = await mongoose.connect(process.env.MONGODB_URI, {\n      useNewUrlParser: true,\n      useUnifiedTopology: true\n    });\n    console.log(`MongoDB Connected: ${conn.connection.host}`);\n  } catch (error) {\n    console.error(`Database Connection Error: ${error.message}`);\n    process.exit(1);\n  }\n};\n\nmodule.exports = connectDB;"
     }
   ]
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, GitBranch, Star, Code, HardDrive, Cpu } from 'lucide-react';
+import { Activity, GitBranch, Code, HardDrive, Cpu } from 'lucide-react';
 import repoMetrics from '../../data/generatedMetrics.json';
 
 interface GitHubData {
@@ -124,16 +124,22 @@ export const MetricsDashboard: React.FC = () => {
 
   // Calculated static values integrated with live API where available
   const statsList = [
-    { name: 'GitHub Repos', val: gitHubStats ? `${gitHubStats.publicRepos} Builds` : 'Loading...', icon: <GitBranch size={11} className="text-cyber-cyan" />, desc: 'Active public repositories' },
-    { name: 'Repository Stars', val: gitHubStats ? `${gitHubStats.totalStars} Stars` : 'Loading...', icon: <Star size={11} className="text-yellow-500" />, desc: 'Recruiter-starred indicators' },
-    { name: 'Codebase Lines', val: `${(repoMetrics?.totalLines || 8500).toLocaleString()} LOC`, icon: <Code size={11} className="text-cyber-magenta" />, desc: 'Self-analyzed typesafe rows' },
-    { name: 'Minified JS Chunk', val: repoMetrics?.bundleSizeKb || '482 KB', icon: <HardDrive size={11} className="text-cyber-green" />, desc: 'Vite code-split compilation size' },
-    { name: 'React Components', val: `${repoMetrics?.componentsCount || 20} Modules`, icon: <Cpu size={11} className="text-cyber-purple" />, desc: 'Dynamic structural blocks' },
-    { name: 'Active Custom Hooks', val: `${repoMetrics?.hooksCount || 3} Hooks`, icon: <Activity size={11} className="text-cyan-400" />, desc: 'Custom state management hooks' }
+    { name: 'Repository Count', val: gitHubStats ? `${gitHubStats.publicRepos} Repos` : `${repoMetrics?.githubRepos ?? 17} Repos`, icon: <GitBranch size={11} className="text-cyber-cyan" />, desc: 'Active public repositories' },
+    { name: 'Primary Languages', val: repoMetrics?.primaryLanguages?.slice(0, 3)?.join(', ') || 'TS, JS', icon: <Code size={11} className="text-yellow-500" />, desc: 'Top languages by repo weight' },
+    { name: 'React Components', val: `${repoMetrics?.componentsCount ?? 24} Modules`, icon: <Cpu size={11} className="text-cyber-purple" />, desc: 'Dynamic structural UI blocks' },
+    { name: 'API Endpoints', val: `${repoMetrics?.apiEndpoints ?? 12} Endpoints`, icon: <Activity size={11} className="text-cyan-400" />, desc: 'Ingestion and service APIs' },
+    { name: 'Bundle Size', val: repoMetrics?.bundleSizeKb || '482 KB', icon: <HardDrive size={11} className="text-cyber-green" />, desc: 'Vite code-split production size' },
+    { name: 'Build Time', val: repoMetrics?.buildTimeMs || '1500ms', icon: <Activity size={11} className="text-cyber-magenta" />, desc: 'Telemetry analysis compiler duration' },
+    { name: 'GitHub Commits', val: gitHubStats ? `${gitHubStats.recentCommits?.length ?? 5} Queue` : `${repoMetrics?.githubActivityScore ?? 28} Pushes`, icon: <GitBranch size={11} className="text-cyber-cyan" />, desc: 'Recent push events log' },
+    { name: 'Project Count', val: `${repoMetrics?.projectCount ?? 6} Loaded`, icon: <Cpu size={11} className="text-cyber-purple" />, desc: 'Active registered projects' },
+    { name: 'Technology Count', val: `${repoMetrics?.technologyCount ?? 29} Techs`, icon: <Code size={11} className="text-yellow-500" />, desc: 'Unique technologies integrated' },
+    { name: 'Deployment Targets', val: `${repoMetrics?.deploymentTargets?.length ?? 5} Targets`, icon: <HardDrive size={11} className="text-cyber-green" />, desc: 'Render, Streamlit, Vercel etc.' },
+    { name: 'TypeScript Coverage', val: repoMetrics?.tsCoverage || '80.5%', icon: <Code size={11} className="text-cyber-magenta" />, desc: 'Fully typesafe files ratio' },
+    { name: 'Codebase Lines', val: `${(repoMetrics?.totalLines || 10293).toLocaleString()} LOC`, icon: <Activity size={11} className="text-cyan-400" />, desc: 'Self-analyzed codebase source lines' }
   ];
 
   return (
-    <div className="space-y-6 font-mono text-[11px] leading-relaxed text-slate-300 bg-slate-950/80 p-5 rounded-xl border border-white/5 max-h-[440px] overflow-y-auto custom-scroll">
+    <div className="space-y-6 font-mono text-[11px] leading-relaxed text-slate-300 bg-slate-950/80 p-5 rounded-xl border border-white/5 max-h-[520px] overflow-y-auto custom-scroll">
       
       {/* Dashboard Top Title */}
       <div className="flex items-center justify-between border-b border-white/5 pb-2">

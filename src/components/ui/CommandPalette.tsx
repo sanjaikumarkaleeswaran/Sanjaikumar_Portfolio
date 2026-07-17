@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X, FileCode, Activity, Globe } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
+import { PROJECTS } from '../../data/projects';
 
 interface CommandItem {
   id: string;
@@ -30,7 +31,8 @@ export const CommandPalette: React.FC<{
     setTheme,
     setIsTourActive,
     setTourStep,
-    setIsTourPaused
+    setIsTourPaused,
+    setSelectedProjectId
   } = useOS();
 
   const [search, setSearch] = useState('');
@@ -294,14 +296,47 @@ export const CommandPalette: React.FC<{
         window.open('https://www.linkedin.com/in/sanjaikumar-kaleeswaran/', '_blank');
         setIsCommandPaletteOpen(false);
       }
-    }
+    },
+    ...PROJECTS.map((proj) => ({
+      id: `project-${proj.id}`,
+      title: `Open Project: ${proj.title} (${proj.shortDescription})`,
+      category: 'Projects',
+      icon: <Folder size={14} className="text-cyber-cyan" />,
+      action: () => {
+        setActiveWindow('projects');
+        setActiveTab('projects');
+        setSelectedProjectId(proj.id);
+        setIsCommandPaletteOpen(false);
+      }
+    }))
   ];
 
   // Filter commands
-  const filtered = commands.filter((cmd) =>
-    cmd.title.toLowerCase().includes(search.toLowerCase()) ||
-    cmd.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = commands.filter((cmd) => {
+    const query = search.toLowerCase().trim();
+    if (!query) return true;
+
+    if (cmd.id.startsWith('project-')) {
+      const projId = cmd.id.replace('project-', '');
+      const proj = PROJECTS.find((p) => p.id === projId);
+      if (proj) {
+        return (
+          proj.title.toLowerCase().includes(query) ||
+          proj.shortDescription.toLowerCase().includes(query) ||
+          proj.description.toLowerCase().includes(query) ||
+          proj.tech.some((t) => t.toLowerCase().includes(query)) ||
+          proj.tags.some((t) => t.toLowerCase().includes(query)) ||
+          proj.category.toLowerCase().includes(query) ||
+          proj.categories.some((c) => c.toLowerCase().includes(query))
+        );
+      }
+    }
+
+    return (
+      cmd.title.toLowerCase().includes(query) ||
+      cmd.category.toLowerCase().includes(query)
+    );
+  });
 
   // Keyboard navigation inside list
   const handleListKeyDown = (e: React.KeyboardEvent) => {

@@ -151,10 +151,31 @@ const ProjectCard: React.FC<{
 };
 
 export const ProjectsExplorer: React.FC = () => {
-  const { playAudioCue, addNotification } = useOS();
+  const { playAudioCue, addNotification, selectedProjectId, setSelectedProjectId } = useOS();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<ProjectData[]>([]);
-  const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
+  const [selectedProject, setSelectedProjectState] = useState<ProjectData | null>(null);
+
+  const setSelectedProject = (proj: ProjectData | null) => {
+    setSelectedProjectState(proj);
+    if (!proj) {
+      setSelectedProjectId(null);
+    } else if (selectedProjectId !== proj.id) {
+      setSelectedProjectId(proj.id);
+    }
+  };
+
+  // Sync from global selectedProjectId
+  useEffect(() => {
+    if (selectedProjectId) {
+      const proj = projects.find(p => p.id === selectedProjectId || p.slug === selectedProjectId);
+      if (proj && (!selectedProject || selectedProject.id !== proj.id)) {
+        setSelectedProjectState(proj);
+      }
+    } else {
+      setSelectedProjectState(null);
+    }
+  }, [selectedProjectId, projects, selectedProject]);
   const [isMobile, setIsMobile] = useState(false);
 
   // Monitor resize
@@ -186,6 +207,18 @@ export const ProjectsExplorer: React.FC = () => {
   const [activeFlowComponent, setActiveFlowComponent] = useState<string | null>(null);
   
   const animIntervalRef = useRef<number | null>(null);
+
+  const sortedArchitecture = selectedProject ? [...(selectedProject.architecture || [])].sort((a, b) => {
+    const getRoleOrder = (role: string): number => {
+      const r = role.toLowerCase();
+      if (r.includes('front')) return 0;
+      if (r.includes('api') || r.includes('back')) return 1;
+      if (r.includes('data') || r.includes('db') || r.includes('store')) return 2;
+      if (r.includes('ai') || r.includes('model') || r.includes('learning')) return 3;
+      return 4;
+    };
+    return getRoleOrder(a.role) - getRoleOrder(b.role);
+  }) : [];
 
   // Load projects from registry
   useEffect(() => {
@@ -585,128 +618,128 @@ ${p.architecture.map(n => `- **${n.name}**: ${n.performance}`).join('\n')}`
                 )}
 
                 {/* Tab 2: Interactive Architecture Diagram */}
-                {activeModalTab === 'diagram' && (
+                {activeModalTab === 'diagram' && selectedProject && (
                   <motion.div
-                    key="diagram"
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <div className="p-4 rounded-xl border border-white/5 bg-slate-950/80 space-y-4">
-                      {isMobile ? (
-                        <div className="space-y-4">
-                          <div className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// ARCHITECTURE COMPONENTS</div>
-                          
-                          {/* Mini Grid representation for mobile */}
-                          <div className="grid grid-cols-2 gap-2">
-                            {selectedProject.architecture.map((node) => {
-                              const isNodeSelected = selectedNode?.id === node.id;
-                              return (
-                                <button
-                                  key={node.id}
-                                  onClick={() => {
-                                    playAudioCue('click');
-                                    setSelectedNode(node);
-                                  }}
-                                  className={`p-3 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
-                                    isNodeSelected 
-                                      ? 'border-cyber-purple bg-cyber-purple/10 text-white shadow-[0_0_10px_rgba(157,78,221,0.2)]'
-                                      : 'border-white/5 bg-slate-900/30 text-slate-400 hover:text-slate-200'
-                                  }`}
-                                >
-                                  <span className="text-[6px] text-slate-500 uppercase tracking-wider font-mono">{node.role}</span>
-                                  <span className="font-bold text-[9px] truncate w-full font-mono">{node.name}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* Details stacked below */}
-                          {selectedNode && (
-                            <motion.div
-                              key={selectedNode.id}
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="p-3.5 border border-white/5 rounded-lg bg-slate-950/70 text-[9px] leading-relaxed text-slate-300 space-y-2 text-left"
-                            >
-                              <div className="text-cyber-purple font-bold text-[8px] uppercase tracking-wider">// COMPONENT SPEC: {selectedNode.role.toUpperCase()}</div>
-                              <p><strong className="text-slate-100">Name:</strong> {selectedNode.name}</p>
-                              <p><strong className="text-slate-100">Purpose:</strong> {selectedNode.purpose}</p>
-                              <p><strong className="text-slate-100">Tech:</strong> <code className="text-cyber-cyan bg-white/5 px-1 py-0.5 rounded">{selectedNode.tech}</code></p>
-                              <p><strong className="text-cyber-magenta font-semibold">Trade-offs:</strong> {selectedNode.tradeoffs}</p>
-                              <p><strong className="text-cyber-cyan font-semibold">Performance:</strong> {selectedNode.performance}</p>
-                            </motion.div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                            <div className="flex flex-col">
-                              <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// INTERACTIVE ARCHITECTURE PLAYGROUND</span>
-                              <span className="text-[7.5px] text-cyber-cyan">Hover nodes to inspect specifications • Click to lock selection</span>
-                            </div>
-                            <button
-                              onClick={startFlowAnimation}
-                              className={`px-3 py-1.5 rounded-lg border text-[9px] font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
-                                isFlowAnimating 
-                                  ? 'bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)] animate-pulse' 
-                                  : 'bg-cyber-cyan/10 border-cyber-cyan/30 text-cyber-cyan hover:bg-cyber-cyan/20 hover:shadow-[0_0_15px_rgba(0,240,255,0.1)]'
-                              }`}
-                            >
-                              {isFlowAnimating ? <RefreshCw size={9} className="animate-spin" /> : <Play size={9} />}
-                              <span>{isFlowAnimating ? 'HALT SIMULATION' : 'RUN PIPELINE SIMULATION'}</span>
-                            </button>
-                          </div>
-
-                          {/* Interactive Canvas Grid representing Node Flow */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative py-6 bg-slate-950/90 rounded-xl border border-white/5 p-4 min-h-[110px] items-center justify-center">
+                      key="diagram"
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="p-4 rounded-xl border border-white/5 bg-slate-950/80 space-y-4">
+                        {isMobile ? (
+                          <div className="space-y-4">
+                            <div className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// ARCHITECTURE COMPONENTS</div>
                             
-                            {/* Directional Connector Flow Line */}
-                            <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta opacity-15 hidden md:block" />
-                            
-                            {selectedProject.architecture.map((node, index) => {
-                              const isNodeSelected = selectedNode?.id === node.id;
-                              const isNodeHovered = hoveredNode?.id === node.id;
-                              const isFlowActive = activeFlowComponent === node.id;
-                              
-                              let colorClass = 'border-white/10 hover:border-cyber-cyan/40 text-slate-400';
-                              let bgClass = 'bg-slate-900/40';
-                              
-                              if (isNodeSelected || isNodeHovered) {
-                                colorClass = 'border-cyber-purple text-white shadow-[0_0_12px_rgba(157,78,221,0.25)] scale-102';
-                                bgClass = 'bg-cyber-purple/10';
-                              }
-                              
-                              if (isFlowActive) {
-                                colorClass = 'border-cyber-cyan text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] scale-105';
-                                bgClass = 'bg-cyber-cyan/15 animate-pulse';
-                              }
-
-                              return (
-                                <div key={node.id} className="relative flex items-center w-full">
+                            {/* Mini Grid representation for mobile */}
+                            <div className="grid grid-cols-2 gap-2">
+                              {sortedArchitecture.map((node) => {
+                                const isNodeSelected = selectedNode?.id === node.id;
+                                return (
                                   <button
+                                    key={node.id}
                                     onClick={() => {
                                       playAudioCue('click');
                                       setSelectedNode(node);
                                     }}
-                                    onMouseEnter={() => setHoveredNode(node)}
-                                    onMouseLeave={() => setHoveredNode(null)}
-                                    className={`relative z-10 p-3.5 w-full rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${colorClass} ${bgClass}`}
+                                    className={`p-3 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                                      isNodeSelected 
+                                        ? 'border-cyber-purple bg-cyber-purple/10 text-white shadow-[0_0_10px_rgba(157,78,221,0.2)]'
+                                        : 'border-white/5 bg-slate-900/30 text-slate-400 hover:text-slate-200'
+                                    }`}
                                   >
-                                    <div className="text-[6.5px] text-slate-500 uppercase font-bold mb-0.5 tracking-wider font-mono">{node.role}</div>
-                                    <div className="font-bold text-[10px] truncate w-full font-mono">{node.name}</div>
+                                    <span className="text-[6px] text-slate-500 uppercase tracking-wider font-mono">{node.role}</span>
+                                    <span className="font-bold text-[9px] truncate w-full font-mono">{node.name}</span>
                                   </button>
+                                );
+                              })}
+                            </div>
 
-                                  {/* Right side connection arrow index */}
-                                  {index < selectedProject.architecture.length - 1 && (
-                                    <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 z-20 text-[8px] text-slate-600 font-bold hidden md:block">
-                                      →
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
+                            {/* Details stacked below */}
+                            {selectedNode && (
+                              <motion.div
+                                key={selectedNode.id}
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-3.5 border border-white/5 rounded-lg bg-slate-950/70 text-[9px] leading-relaxed text-slate-300 space-y-2 text-left"
+                              >
+                                <div className="text-cyber-purple font-bold text-[8px] uppercase tracking-wider">// COMPONENT SPEC: {selectedNode.role.toUpperCase()}</div>
+                                <p><strong className="text-slate-100">Name:</strong> {selectedNode.name}</p>
+                                <p><strong className="text-slate-100">Purpose:</strong> {selectedNode.purpose}</p>
+                                <p><strong className="text-slate-100">Tech:</strong> <code className="text-cyber-cyan bg-white/5 px-1 py-0.5 rounded">{selectedNode.tech}</code></p>
+                                <p><strong className="text-cyber-magenta font-semibold">Trade-offs:</strong> {selectedNode.tradeoffs}</p>
+                                <p><strong className="text-cyber-cyan font-semibold">Performance:</strong> {selectedNode.performance}</p>
+                              </motion.div>
+                            )}
                           </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                              <div className="flex flex-col">
+                                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// INTERACTIVE ARCHITECTURE PLAYGROUND</span>
+                                <span className="text-[7.5px] text-cyber-cyan">Hover nodes to inspect specifications • Click to lock selection</span>
+                              </div>
+                              <button
+                                onClick={startFlowAnimation}
+                                className={`px-3 py-1.5 rounded-lg border text-[9px] font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                                  isFlowAnimating 
+                                    ? 'bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)] animate-pulse' 
+                                    : 'bg-cyber-cyan/10 border-cyber-cyan/30 text-cyber-cyan hover:bg-cyber-cyan/20 hover:shadow-[0_0_15px_rgba(0,240,255,0.1)]'
+                                }`}
+                              >
+                                {isFlowAnimating ? <RefreshCw size={9} className="animate-spin" /> : <Play size={9} />}
+                                <span>{isFlowAnimating ? 'HALT SIMULATION' : 'RUN PIPELINE SIMULATION'}</span>
+                              </button>
+                            </div>
+
+                            {/* Interactive Canvas Grid representing Node Flow */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative py-6 bg-slate-950/90 rounded-xl border border-white/5 p-4 min-h-[110px] items-center justify-center">
+                              
+                              {/* Directional Connector Flow Line */}
+                              <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta opacity-15 hidden md:block" />
+                              
+                              {sortedArchitecture.map((node, index) => {
+                                const isNodeSelected = selectedNode?.id === node.id;
+                                const isNodeHovered = hoveredNode?.id === node.id;
+                                const isFlowActive = activeFlowComponent === node.id;
+                                
+                                let colorClass = 'border-white/10 hover:border-cyber-cyan/40 text-slate-400';
+                                let bgClass = 'bg-slate-900/40';
+                                
+                                if (isNodeSelected || isNodeHovered) {
+                                  colorClass = 'border-cyber-purple text-white shadow-[0_0_12px_rgba(157,78,221,0.25)] scale-102';
+                                  bgClass = 'bg-cyber-purple/10';
+                                }
+                                
+                                if (isFlowActive) {
+                                  colorClass = 'border-cyber-cyan text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] scale-105';
+                                  bgClass = 'bg-cyber-cyan/15 animate-pulse';
+                                }
+
+                                return (
+                                  <div key={node.id} className="relative flex items-center w-full">
+                                    <button
+                                      onClick={() => {
+                                        playAudioCue('click');
+                                        setSelectedNode(node);
+                                      }}
+                                      onMouseEnter={() => setHoveredNode(node)}
+                                      onMouseLeave={() => setHoveredNode(null)}
+                                      className={`relative z-10 p-3.5 w-full rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${colorClass} ${bgClass}`}
+                                    >
+                                      <div className="text-[6.5px] text-slate-500 uppercase font-bold mb-0.5 tracking-wider font-mono">{node.role}</div>
+                                      <div className="font-bold text-[10px] truncate w-full font-mono">{node.name}</div>
+                                    </button>
+
+                                    {/* Right side connection arrow index */}
+                                    {index < sortedArchitecture.length - 1 && (
+                                      <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 z-20 text-[8px] text-slate-600 font-bold hidden md:block">
+                                        →
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
 
                           {/* Dynamic Simulation Telemetry / Console Side-by-side Panel */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

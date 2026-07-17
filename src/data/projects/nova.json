@@ -1,25 +1,26 @@
 {
+  "displayPriority": 3,
   "id": "nova",
   "slug": "nova",
   "title": "Nova AI RFP Platform",
   "description": "Collaborated in Agile sprints to build modular React + TypeScript UI components with robust validation and workflow engines. Nova automates request sheets processing and answers drafts based on matching company documentation.",
   "shortDescription": "AI RFP document matching and workflow automation platform.",
   "status": "Production",
-  "tech": ["React", "TypeScript", "TailwindCSS", "QA Testing", "Agile"],
-  "technologies": ["React", "TypeScript", "TailwindCSS", "QA Testing", "Agile"],
+  "tech": ["React", "TypeScript", "Node.js", "Express", "MongoDB", "Mongoose", "TailwindCSS", "Google GenAI API", "HuggingFace API", "Groq API"],
+  "technologies": ["React", "TypeScript", "Node.js", "Express", "MongoDB", "Mongoose", "TailwindCSS", "Google GenAI API", "HuggingFace API", "Groq API"],
   "categories": ["AI WORKFLOW AUTOMATION", "Enterprise Systems"],
   "category": "AI WORKFLOW AUTOMATION",
-  "tags": ["nova", "rfp", "typescript", "react", "tailwind", "workflow", "qa testing", "agile"],
-  "github": "https://github.com/sanjaikumarkaleeswaran",
-  "demo": "https://github.com/sanjaikumarkaleeswaran",
-  "deployment": "AWS S3 / CloudFront",
+  "tags": ["nova", "rfp", "typescript", "react", "tailwind", "express", "mongoose", "mongodb", "genai"],
+  "github": "https://github.com/sanjaikumarkaleeswaran/RFP",
+  "demo": "https://github.com/sanjaikumarkaleeswaran/RFP",
+  "deployment": "AWS S3 / CloudFront / Render",
   "screenshots": [],
   "coverImage": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe",
-  "database": "N/A (Client-side / FastAPI Mock)",
+  "database": "MongoDB Atlas (via Mongoose)",
   "authentication": "JWT / Cookie Session",
-  "apis": ["REST API", "JSON Validation Schema"],
-  "aiFeatures": ["Contextual document matching", "Spreadsheet token parser", "Automated QA mock feedback"],
-  "deploymentStack": ["AWS S3", "CloudFront", "GitHub Actions"],
+  "apis": ["Google GenAI API", "HuggingFace Inference API", "Groq API", "Gmail Webhook API"],
+  "aiFeatures": ["Contextual document matching", "Gmail webhook automated responders", "AI-driven vendor comparisons"],
+  "deploymentStack": ["AWS S3 Frontend", "Render Backend Express", "MongoDB Cloud Database"],
   "metrics": {
     "value": 95,
     "label": "Interface Responsiveness Score",
@@ -27,10 +28,10 @@
     "latency": "24ms",
     "errorRate": "0.02%",
     "requestFlow": [
-      { "from": "User Client", "to": "React Client", "label": "User updates cell", "type": "request" },
-      { "from": "React Client", "to": "RFP Parser Engine", "label": "Validate sheet request", "type": "request" },
-      { "from": "RFP Parser Engine", "to": "QA Mock Sandbox", "label": "Load sandbox response", "type": "db" },
-      { "from": "RFP Parser Engine", "to": "React Client", "label": "Render validation overlays", "type": "response" }
+      { "from": "User Client", "to": "Express Backend", "label": "User updates cell", "type": "request" },
+      { "from": "Express Backend", "to": "Google GenAI Engine", "label": "Analyze proposal match", "type": "ai" },
+      { "from": "Express Backend", "to": "MongoDB Atlas", "label": "Save validation logs", "type": "db" },
+      { "from": "Express Backend", "to": "User Client", "label": "Render validation overlays", "type": "response" }
     ]
   },
   "timeline": {
@@ -45,10 +46,10 @@
   "solutions": "Designed custom React hooks for form validations, optimized re-renders, and built automated test cases for regressions.",
   "lessons": "Successfully launched a scalable interface that reduced RFP completion timelines and eliminated interface layout errors.",
   "futureWork": "Support real-time spreadsheet collaborative multi-user editing nodes.",
-  "readmeSummary": "Nova is an enterprise-grade AI automation system designed to parse Request for Proposal (RFP) sheets and draft automated answers based on matching company docs.",
-  "aiSummary": "Nova optimizes enterprise RFP completion using modular React client inputs and python fastapi parsers, reducing manual labor overhead by 65%.",
+  "readmeSummary": "Nova is an enterprise-grade AI automation system designed to parse Request for Proposal (RFP) sheets and draft automated answers based on matching company docs using Google GenAI.",
+  "aiSummary": "Nova optimizes enterprise RFP completion using modular React client inputs and Express backend parsers, reducing manual labor overhead by 65%.",
   "difficulty": "Medium",
-  "resumeSummary": "Contributed to building enterprise-grade React forms and automated spreadsheet validations for AI-driven Request for Proposal (RFP) parsing solutions under Agile workflows.",
+  "resumeSummary": "Contributed to building enterprise-grade React forms and Express integrations for AI-driven Request for Proposal (RFP) parsing solutions under Agile workflows.",
   "starStory": "Situation: Form validation rules were slowing down the client view. Task: Build custom hooks to validation. Action: Isolated form validation logic inside a custom React hook with debounce windows. Result: Form performance responsiveness remained under 24ms.",
   "interviewQuestions": [
     {
@@ -71,47 +72,59 @@
     },
     {
       "id": "nova-workflow",
-      "name": "RFP Parser Engine",
+      "name": "Express API Backend",
       "role": "Backend",
       "purpose": "Reads request spreadsheet documents and drafts structural answers.",
-      "tech": "FastAPI (Python)",
-      "reason": "FastAPI matches Node.js performance speeds and includes native OpenAPI swagger support.",
-      "tradeoffs": "Python is slower than Go/Rust, but Python has superior document parsing and regex libraries.",
+      "tech": "Node.js, Express (TypeScript)",
+      "reason": "TypeScript adds type-safety to API requests, matching Node.js performance speeds.",
+      "tradeoffs": "TypeScript requires a compilation step, but prevents major runtime bugs.",
       "performance": "Uses asynchronous tasks to handle file ingestion pipelines without blocking threads.",
-      "security": "Sanitizes inputs to prevent spreadsheet injection attacks.",
+      "security": "Sanitizes inputs using express-validator and helmet middleware.",
       "scale": "Stateless design permits horizontal scaling via Kubernetes pods."
     },
     {
-      "id": "nova-qa",
-      "name": "QA Mock Sandbox",
-      "role": "Optimization",
-      "purpose": "Simulates API responses during agile QA testing sessions.",
-      "tech": "Custom Mock API Engine",
-      "reason": "Prevents dependency on active backends during regression sweeps.",
-      "tradeoffs": "Mock layers require separate data maintenance whenever schemas update.",
-      "performance": "Instantly returns static schema mock states in < 5ms.",
-      "security": "Excludes all real-world client database references.",
-      "scale": "Self-contained code structures require zero server scaling."
+      "id": "nova-db",
+      "name": "MongoDB Atlas",
+      "role": "Database",
+      "purpose": "Stores workspace details, proposals, and user tokens.",
+      "tech": "MongoDB (Mongoose)",
+      "reason": "Unstructured documents represent flexible RFP layouts and proposal templates cleanly.",
+      "tradeoffs": "Lack of relational features means complex queries require application aggregation layers.",
+      "performance": "Created indexes on spaces and user associations.",
+      "security": "Requires SSL connections and uses JWT cookie parsing.",
+      "scale": "Uses replica sets for high availability."
+    },
+    {
+      "id": "nova-ai",
+      "name": "AI Inference Hub",
+      "role": "AI",
+      "purpose": "Accesses Gemini, HuggingFace, and Groq to formulate answers.",
+      "tech": "@google/generative-ai, groq-sdk, @huggingface/inference",
+      "reason": "Enables multi-model fallbacks to ensure RFP responses are generated even if one provider is down.",
+      "tradeoffs": "External API requests add network latency dependencies.",
+      "performance": "Invokes semantic matches in parallel threads.",
+      "security": "Filters prompts to prevent prompt injection and data leaks.",
+      "scale": "Managed endpoints scale transparently on the cloud."
     }
   ],
   "files": [
     {
-      "name": "RfpGrid.tsx",
-      "path": "src/components/RfpGrid.tsx",
+      "name": "index.ts",
+      "path": "backend/src/index.ts",
       "language": "typescript",
-      "purpose": "Renders list of active RFP sheets with real-time editing and batch validation.",
-      "logic": "Implements window virtualization (react-window) and batch dispatch queues to prevent thread blockage.",
-      "tradeoffs": "Chose client-side pagination over server-side because dataset is small (<500 items) and instant local sorting/filtering was critical for user flow.",
-      "code": "import React, { useMemo } from 'react';\nimport { useTable, useSortBy } from 'react-table';\n\ninterface RfpRow {\n  id: string;\n  title: string;\n  progress: number;\n  status: 'draft' | 'review' | 'complete';\n}\n\nexport const RfpGrid: React.FC<{ data: RfpRow[] }> = ({ data }) => {\n  const columns = useMemo(() => [\n    { Header: 'ID', accessor: 'id' as const },\n    { Header: 'Project Name', accessor: 'title' as const },\n    { Header: 'Matching Progress', accessor: 'progress' as const },\n    { Header: 'State', accessor: 'status' as const }\n  ], []);\n\n  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = \n    useTable({ columns, data }, useSortBy);\n\n  return (\n    <table {...getTableProps()} className=\"w-full border-collapse\">\n      <thead>\n        {headerGroups.map(hg => (\n          <tr {...hg.getHeaderGroupProps()}>\n            {hg.headers.map(col => (\n              <th {...col.getHeaderProps(col.getSortByToggleProps())} className=\"p-2 border-b\">\n                {col.render('Header')}\n                <span>{col.isSorted ? (col.isSortedDesc ? ' 🔽' : ' 🔼') : ''}</span>\n              </th>\n            ))}\n          </tr>\n        ))}\n      </thead>\n      <tbody {...getTableBodyProps()}>\n        {rows.map(row => {\n          prepareRow(row);\n          return (\n            <tr {...row.getRowProps()} className=\"hover:bg-white/5\">\n              {row.cells.map(cell => (\n                <td {...cell.getCellProps()} className=\"p-2 border-b text-xs\">\n                  {cell.render('Cell')}\n                </td>\n              ))}\n            </tr>\n          );\n        })}\n      </tbody>\n    </table>\n  );\n};"
+      "purpose": "Application entry point and database connection hook.",
+      "logic": "Connects to MongoDB, initializes Gmail watch services, and spins up the Express server.",
+      "tradeoffs": "Used ts-node for local development and tsc compilation for production builds.",
+      "code": "import dotenv from 'dotenv';\nimport path from 'path';\ndotenv.config({ path: path.resolve(__dirname, '../../.env') });\n\nimport mongoose from 'mongoose';\nimport app from './app';\n\nconst PORT = process.env.PORT || 5000;\nconst MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/nova';\n\nmongoose.connect(MONGO_URI)\n  .then(async () => {\n    console.log('Connected to MongoDB');\n    \n    // Start Gmail webhook watches for notifications\n    try {\n      const { gmailWebhookService } = await import('./common/services/gmail-webhook.service');\n      await gmailWebhookService.startWatchingAllUsers();\n      console.log('Gmail webhook service initialized');\n    } catch (e) {\n      console.error('Gmail webhook failed:', e);\n    }\n\n    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));\n  });"
     },
     {
-      "name": "rfpHooks.ts",
-      "path": "src/hooks/rfpHooks.ts",
+      "name": "app.ts",
+      "path": "backend/src/app.ts",
       "language": "typescript",
-      "purpose": "Manages asynchronous RFP document matching queues.",
-      "logic": "Debounces keyboard query inputs and triggers validation loops.",
-      "tradeoffs": "Chose custom debounce over loading full state manager (Redux) to keep this specific route lightweight.",
-      "code": "import { useState, useEffect } from 'react';\n\nexport function useRfpSearch(initialQuery = '') {\n  const [query, setQuery] = useState(initialQuery);\n  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);\n\n  useEffect(() => {\n    const handler = setTimeout(() => {\n      setDebouncedQuery(query);\n    }, 250);\n\n    return () => clearTimeout(handler);\n  }, [query]);\n\n  return {\n    query,\n    setQuery,\n    debouncedQuery\n  };\n}"
+      "purpose": "Express application setup and middleware configurations.",
+      "logic": "Registers CORS, Helmet, cookie parsers, and modular routers.",
+      "tradeoffs": "Helmet is configured to block unauthorized inline scripts while allowing asset loading.",
+      "code": "import express from 'express';\nimport cors from 'cors';\nimport helmet from 'helmet';\nimport cookieParser from 'cookie-parser';\nimport authRoutes from './modules/auth/routes';\nimport proposalRoutes from './modules/proposal/routes';\n\nconst app = express();\n\napp.use(cors());\napp.use(helmet());\napp.use(express.json());\napp.use(cookieParser());\n\napp.use('/api/auth', authRoutes);\napp.use('/api/proposals', proposalRoutes);\n\nexport default app;"
     }
   ]
 }

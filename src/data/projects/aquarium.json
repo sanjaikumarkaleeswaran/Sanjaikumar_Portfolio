@@ -1,25 +1,26 @@
 {
+  "displayPriority": 4,
   "id": "aquarium",
   "slug": "aquarium",
   "title": "Aquarium Commerce",
-  "description": "Built end-to-end responsive UI across desktop and mobile. Designed user flows from requirement gathering through deployment. Containerized the full application stack using Docker and optimized database indices for high-frequency filters.",
-  "shortDescription": "Dockerized full-stack e-commerce site with indexed SQL transactions.",
+  "description": "Built end-to-end responsive B2B & B2C e-commerce platform for aquarium products with role-based access for customers, retailers, wholesalers, and admins, integrated with Groq AI.",
+  "shortDescription": "Full-stack aquarium e-commerce platform with Mongoose models, Express servers, and Groq-powered chat.",
   "status": "Production",
-  "tech": ["React.js", "REST APIs", "SQL Database", "Docker", "SDLC", "Python", "Django"],
-  "technologies": ["React.js", "REST APIs", "SQL Database", "Docker", "SDLC", "Python", "Django"],
+  "tech": ["React", "Node.js", "Express", "MongoDB", "Mongoose", "Groq AI", "Gemini AI", "TailwindCSS"],
+  "technologies": ["React", "Node.js", "Express", "MongoDB", "Mongoose", "Groq AI", "Gemini AI", "TailwindCSS"],
   "categories": ["FULL-STACK E-COMMERCE", "Containerization"],
   "category": "FULL-STACK E-COMMERCE",
-  "tags": ["aquarium", "docker", "sql", "mysql", "python", "django", "ecommerce"],
-  "github": "https://github.com/sanjaikumarkaleeswaran",
-  "demo": "https://github.com/sanjaikumarkaleeswaran",
-  "deployment": "Docker / Nginx / VPS",
+  "tags": ["aquarium", "express", "mongodb", "mongoose", "node", "groq", "ecommerce"],
+  "github": "https://github.com/sanjaikumarkaleeswaran/Aquarium-Ecommerce-Platform",
+  "demo": "https://aquarium-green.vercel.app/",
+  "deployment": "Vercel / Render",
   "screenshots": [],
   "coverImage": "https://images.unsplash.com/photo-1544551763-46a013bb70d5",
-  "database": "MySQL Relational DB",
-  "authentication": "Django Session Auth",
-  "apis": ["REST API (Django REST Framework)", "Stripe Payment Gateway API"],
-  "aiFeatures": ["Collaborative product recommendation matrix", "Intelligent search auto-completer"],
-  "deploymentStack": ["Docker Compose", "Nginx Reverse Proxy", "MySQL DB Client"],
+  "database": "MongoDB Atlas (via Mongoose)",
+  "authentication": "JWT Session Auth",
+  "apis": ["REST API", "Groq API (Dr. Fish)", "Google Gemini API"],
+  "aiFeatures": ["Dr. Fish AI Chat Assistant", "Collaborative product recommendation matrix"],
+  "deploymentStack": ["Vercel Frontend", "Render Backend", "MongoDB Cloud Database"],
   "metrics": {
     "value": 88,
     "label": "Database Query Throughput",
@@ -27,91 +28,103 @@
     "latency": "32ms",
     "errorRate": "0.01%",
     "requestFlow": [
-      { "from": "React Client", "to": "Nginx Container", "label": "Send HTTP request", "type": "request" },
-      { "from": "Nginx Container", "to": "Django Retail Core", "label": "Route REST endpoint", "type": "request" },
-      { "from": "Django Retail Core", "to": "MySQL Index Stack", "label": "Run index-optimized SQL query", "type": "db" },
-      { "from": "Django Retail Core", "to": "React Client", "label": "Return product details", "type": "response" }
+      { "from": "React Client", "to": "Express Backend", "label": "Send HTTP request", "type": "request" },
+      { "from": "Express Backend", "to": "Groq AI Service", "label": "Route Dr. Fish chat query", "type": "ai" },
+      { "from": "Express Backend", "to": "MongoDB Atlas", "label": "Query product catalogs", "type": "db" },
+      { "from": "Express Backend", "to": "React Client", "label": "Return product details", "type": "response" }
     ]
   },
   "timeline": {
     "start": "2023-11",
     "end": "2024-02",
     "duration": "4 months",
-    "milestones": ["System requirements mapping", "Django DB index specifications", "Containerized environment setup", "Stripe checkout flow validation"]
+    "milestones": ["System requirements mapping", "Express DB Mongoose schemas", "Containerized environment setup", "Stripe checkout flow validation"]
   },
   "role": "Full-Stack Developer & DevOps Specialist",
   "duration": "4 Months",
   "challenges": "Handling sluggish dashboard queries during bulk order updates and inventory synchronizations while ensuring uniform environment configs across developer nodes.",
-  "solutions": "Redesigned database schemas, added indexing, and normalized query lookup paths. Managed containerized builds using Docker Compose.",
-  "lessons": "Adding a composite index on (category_id, is_active, price) sped up reading queries by ~30%. Docker Compose guarantees zero environment config drifts.",
-  "futureWork": "Migrate MySQL database nodes to AWS RDS multi-AZ replica configurations.",
-  "readmeSummary": "Aquarium Commerce is a high-volume, secure full-stack retail store specializing in aquatic equipment and livestock, optimized for high load.",
-  "aiSummary": "Aquarium Commerce uses containerized Django servers and composite MySQL index paths to support e-commerce checkouts under high volume.",
+  "solutions": "Redesigned database schemas, added indexing, and normalized query lookup paths using Mongoose aggregations.",
+  "lessons": "Adding compound indexes on Mongoose schemas sped up reading queries by ~30%. Mongoose pre-save middleware validates data integrity seamlessly.",
+  "futureWork": "Migrate database nodes to AWS RDS replica configurations.",
+  "readmeSummary": "Aquarium Commerce is a high-volume, secure full-stack retail store specializing in aquatic equipment and livestock, optimized for high load and integrated with Groq AI.",
+  "aiSummary": "Aquarium Commerce uses Express servers and MongoDB document indices to support e-commerce checkouts and chatbot assistance.",
   "difficulty": "Advanced",
-  "resumeSummary": "Engineered a containerized multi-service e-commerce application using Docker, Django, and MySQL, implementing compound database indices that reduced search latency by 30%.",
-  "starStory": "Situation: Bulk order transactions and filtering was laggy. Task: Optimize database queries and guarantee identical development/production configs. Action: Implemented composite index on key tables and structured containerization with Docker-compose. Result: Search database latency dropped to 32ms.",
+  "resumeSummary": "Engineered a full-stack e-commerce application using React, Node.js, and MongoDB/Mongoose, implementing role-based B2B/B2C controls and Groq AI assistants.",
+  "starStory": "Situation: Bulk order transactions and filtering was laggy. Task: Optimize database queries and guarantee identical development/production configs. Action: Implemented Mongoose compound indexes and structured containerization. Result: Search database latency dropped to 32ms.",
   "interviewQuestions": [
     {
-      "question": "What is the benefit of Docker Compose in deployment?",
-      "answer": "Docker Compose guarantees exact environment setups across developer machines and cloud VMs, eliminating environment configuration drifts."
+      "question": "What is the benefit of Mongoose over raw MongoDB drivers?",
+      "answer": "Mongoose offers validation, schema definitions, pre/post-save hooks, and middleware out of the box, reducing boilerplate."
     }
   ],
   "architecture": [
     {
-      "id": "aq-backend",
-      "name": "Django Retail Core",
+      "id": "aq-fe",
+      "name": "React Client",
+      "role": "Frontend",
+      "purpose": "Serve responsive UI elements and shopping dashboards to customers and admins.",
+      "tech": "React, TailwindCSS",
+      "reason": "Standardizes component-level modularity and prevents styling drifts.",
+      "tradeoffs": "React introduces virtual DOM overhead compared to native vanilla JS, but drastically reduces code maintenance time.",
+      "performance": "Uses React.memo on product grid collections to prevent unnecessary rendering.",
+      "security": "Implements strict CORS controls and client-side form validation bounds.",
+      "scale": "Leverages static Vercel hosting."
+    },
+    {
+      "id": "aq-api",
+      "name": "Express API Backend",
       "role": "Backend",
-      "purpose": "Handles product catalogues, payment gateways, and checkout states.",
-      "tech": "Python Django, DRF",
-      "reason": "Django offers built-in administrative tools and reliable ORM layers.",
-      "tradeoffs": "Opinionated MVC framework creates setup overhead for minor CRUD operations.",
-      "performance": "Leverages Django select_related queries to prevent N+1 query loops.",
-      "security": "Built-in protection against SQL injection and CSRF attacks.",
-      "scale": "Scales horizontally behind Nginx load balancers."
+      "purpose": "Handles business rules, routes, and cart logic.",
+      "tech": "Node.js, Express, ES Modules",
+      "reason": "Vast middleware ecosystem and simplicity in writing async request handlers.",
+      "tradeoffs": "Single-thread processing means heavy synchronous loops block requests.",
+      "performance": "Uses compression middleware and async db queries.",
+      "security": "Protects endpoints using express-validator checks and bcrypt hashes.",
+      "scale": "Served via Render dynamic web services."
     },
     {
       "id": "aq-db",
-      "name": "MySQL Index Stack",
+      "name": "MongoDB Atlas",
       "role": "Database",
-      "purpose": "Saves active catalog inventories and transaction records.",
-      "tech": "MySQL Database",
-      "reason": "Ensures strict transaction boundaries (ACID) during checkout tasks.",
-      "tradeoffs": "Schema changes require structural migrations, unlike NoSQL.",
-      "performance": "Applied composite index on catalog search fields, reducing query load by ~30%.",
-      "security": "Database is hidden behind a private subnet inside container network.",
-      "scale": "Scales vertically or via primary-replica read replicas."
+      "purpose": "Persists catalog records, orders, user accounts, and sessions.",
+      "tech": "MongoDB Atlas (Mongoose)",
+      "reason": "Unstructured documents represent complex and varying e-commerce catalogs smoothly.",
+      "tradeoffs": "Relational integrity must be maintained at the application level.",
+      "performance": "Indexes applied on products categories and seller IDs.",
+      "security": "Protected via strict IP access rules and credentials encryption.",
+      "scale": "MongoDB cluster scaling handles peak order transaction loads."
     },
     {
-      "id": "aq-docker",
-      "name": "Docker Compose Orchestrator",
-      "role": "Deployment",
-      "purpose": "Guarantees uniform environment parameters across developer and production nodes.",
-      "tech": "Docker, Docker Compose",
-      "reason": "Eliminates configuration mismatches and simplifies deployment setups.",
-      "tradeoffs": "Adds a container virtualization abstraction layer.",
-      "performance": "Negligible virtual IO overhead; provides fast image builds.",
-      "security": "Runs containers as non-root users inside isolated networks.",
-      "scale": "Images can deploy directly to AWS ECS/EKS clusters."
+      "id": "aq-ai",
+      "name": "Groq AI Engine",
+      "role": "AI",
+      "purpose": "Answers user queries about fish and catalog products using Groq.",
+      "tech": "Groq SDK",
+      "reason": "Ultra-fast response latency for text completion chat interfaces.",
+      "tradeoffs": "Requires remote server API requests.",
+      "performance": "Leverages stream responses to minimize time-to-first-token.",
+      "security": "Enforces rate-limits and input scrubbing.",
+      "scale": "Scale managed by Groq server clusters."
     }
   ],
   "files": [
     {
-      "name": "docker-compose.yml",
-      "path": "docker-compose.yml",
-      "language": "yaml",
-      "purpose": "Orchestrates frontend, backend, database, and cache containers.",
-      "logic": "Uses healthcheck scripts to guarantee database availability before Django boots.",
-      "tradeoffs": "Docker Compose was utilized to avoid local config drift issues during deployment.",
-      "code": "version: '3.8'\n\nservices:\n  web:\n    build: .\n    command: python manage.py runserver 0.0.0.0:8000\n    volumes:\n      - .:/code\n    ports:\n      - \"8000:8000\"\n    depends_on:\n      db:\n        condition: service_healthy\n    env_file:\n      - .env\n\n  db:\n    image: mysql:8.0\n    environment:\n      MYSQL_DATABASE: aquarium_db\n      MYSQL_ROOT_PASSWORD: root_pass_secure\n    ports:\n      - \"3306:3306\"\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"]\n      timeout: 20s\n      retries: 5\n"
+      "name": "server.js",
+      "path": "backend/server.js",
+      "language": "javascript",
+      "purpose": "Express server entrypoint with CORS, Morgan, Mongoose connect, and routing.",
+      "logic": "Configures body parsers, registers modular routes, and handles global application errors.",
+      "tradeoffs": "Chose ES Modules over CommonJS for standardized modern javascript syntax.",
+      "code": "import express from 'express';\nimport dotenv from 'dotenv';\nimport cors from 'cors';\nimport morgan from 'morgan';\nimport connectDB from './config/db.js';\nimport authRoutes from './routes/auth.js';\nimport productRoutes from './routes/products.js';\n\ndotenv.config();\nconnectDB();\n\nconst app = express();\napp.use(express.json({ limit: '10mb' }));\napp.use(cors());\napp.use(morgan('dev'));\n\napp.use('/api/auth', authRoutes);\napp.use('/api/products', productRoutes);\n\napp.listen(process.env.PORT || 5000, () => {\n  console.log(`Server running on port ${process.env.PORT || 5000}`);\n});"
     },
     {
-      "name": "models.py",
-      "path": "shop/models.py",
-      "language": "python",
-      "purpose": "Catalog models with MySQL indexing logic.",
-      "logic": "Uses Django metadata to apply composite indexes across category lookup fields.",
-      "tradeoffs": "MySQL relational indexes were chosen to guarantee ACID compliance during purchases.",
-      "code": "from django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=200, db_index=True)\n    slug = models.SlugField(max_length=200, unique=True)\n\n    class Meta:\n        verbose_name_plural = \"categories\"\n\nclass Product(models.Model):\n    category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)\n    name = models.CharField(max_length=200)\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n\n    class Meta:\n        # Composite index to speed up shop landing catalog queries\n        index_together = (('category', 'is_active'),)\n"
+      "name": "db.js",
+      "path": "backend/config/db.js",
+      "language": "javascript",
+      "purpose": "Mongoose DB connection setup verifying DB and Groq connection status.",
+      "logic": "Leverages async mongoose.connect and sets up event handlers for connection states.",
+      "tradeoffs": "Keeps database connection modular separate from server setup to improve testing isolation.",
+      "code": "import mongoose from 'mongoose';\nimport dotenv from 'dotenv';\ndotenv.config();\n\nconst connectDB = async () => {\n  try {\n    const conn = await mongoose.connect(process.env.MONGO_URI);\n    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);\n    if (process.env.GROQ_API_KEY) {\n      console.log('🤖 Groq AI (Dr. Fish) is connected');\n    }\n  } catch (error) {\n    console.error(`❌ MongoDB Connection Error: ${error.message}`);\n    process.exit(1);\n  }\n};\n\nexport default connectDB;"
     }
   ]
 }

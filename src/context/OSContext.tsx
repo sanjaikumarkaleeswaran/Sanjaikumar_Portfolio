@@ -37,6 +37,8 @@ interface OSContextProps {
   setTourStep: (step: number) => void;
   isTourPaused: boolean;
   setIsTourPaused: (paused: boolean) => void;
+  selectedProjectId: string | null;
+  setSelectedProjectId: (id: string | null) => void;
 }
 
 const OSContext = createContext<OSContextProps | undefined>(undefined);
@@ -61,6 +63,7 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [isTourActive, setIsTourActive] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [isTourPaused, setIsTourPaused] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   // Web Audio Context Reference
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -564,7 +567,9 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         tourStep,
         setTourStep,
         isTourPaused,
-        setIsTourPaused
+        setIsTourPaused,
+        selectedProjectId,
+        setSelectedProjectId
       }}
     >
       {children}

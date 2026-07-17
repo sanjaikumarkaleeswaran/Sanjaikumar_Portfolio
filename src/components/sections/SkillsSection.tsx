@@ -6,6 +6,8 @@ import { useOS } from '../../context/OSContext';
 // Lazy-load the heavy 3D planetarium only when skills tab is open
 const TechPlanetarium = lazy(() => import('../canvas/TechPlanetarium').then(m => ({ default: m.TechPlanetarium })));
 
+import { PROJECTS } from '../../data/projects';
+
 interface SkillDetail {
   name: string;
   proficiency: number;
@@ -15,65 +17,138 @@ interface SkillDetail {
 
 export const SkillsSection: React.FC = () => {
   const { playAudioCue } = useOS();
-  const [selectedCategory, setSelectedCategory] = useState<string>('Frontend');
 
-  // Organized skills catalog
-  const skillsData: Record<string, SkillDetail[]> = {
-    Frontend: [
-      { name: 'React.js', proficiency: 92, years: 3, projects: ['MindWave AI', 'Aquarium Engine', 'Student Ranker'] },
-      { name: 'TypeScript', proficiency: 88, years: 2.5, projects: ['MindWave AI', 'Nova AI RFP'] },
-      { name: 'JavaScript', proficiency: 90, years: 4, projects: ['MindWave AI', 'Aquarium Engine'] },
-      { name: 'TailwindCSS', proficiency: 92, years: 3, projects: ['Nova AI RFP', 'Portfolio'] },
-      { name: 'Framer Motion', proficiency: 80, years: 2, projects: ['Portfolio'] }
-    ],
-    Backend: [
-      { name: 'Node.js', proficiency: 85, years: 3, projects: ['MindWave AI', 'Nova AI RFP'] },
-      { name: 'FastAPI', proficiency: 82, years: 2, projects: ['Nova AI RFP'] },
-      { name: 'Django', proficiency: 78, years: 1.5, projects: ['Student Ranker'] },
-      { name: 'Express.js', proficiency: 84, years: 2.5, projects: ['MindWave AI'] }
-    ],
-    AI: [
-      { name: 'RAG Systems', proficiency: 85, years: 2, projects: ['Portfolio Copilot'] },
-      { name: 'LLM Prompting', proficiency: 88, years: 2, projects: ['MindWave AI', 'Nova AI RFP'] },
-      { name: 'NLP Similarity', proficiency: 80, years: 1.5, projects: ['Resume Optimizer'] }
-    ],
-    Cloud: [
-      { name: 'AWS (S3/EC2)', proficiency: 70, years: 1.5, projects: ['Nova AI RFP'] },
-      { name: 'Netlify / Vercel', proficiency: 88, years: 3, projects: ['Portfolio'] }
-    ],
-    Database: [
-      { name: 'MongoDB', proficiency: 84, years: 2.5, projects: ['MindWave AI'] },
-      { name: 'PostgreSQL', proficiency: 80, years: 2, projects: ['Nova AI RFP'] },
-      { name: 'MySQL', proficiency: 85, years: 3, projects: ['Student Ranker'] }
-    ],
-    DevOps: [
-      { name: 'Docker / Compose', proficiency: 80, years: 2, projects: ['Nova AI RFP', 'MindWave AI'] },
-      { name: 'GitHub Actions', proficiency: 82, years: 2, projects: ['All Repositories'] },
-      { name: 'Linux Terminal', proficiency: 85, years: 3, projects: ['Server Deployments'] }
-    ],
-    Tools: [
-      { name: 'VS Code', proficiency: 92, years: 4, projects: ['All Projects'] },
-      { name: 'Postman', proficiency: 88, years: 3, projects: ['API Integration'] },
-      { name: 'Figma', proficiency: 78, years: 2, projects: ['Wireframes / UI Design'] }
-    ],
-    Languages: [
-      { name: 'Python', proficiency: 88, years: 3.5, projects: ['Student Ranker', 'Nova AI RFP'] },
-      { name: 'JavaScript ES6+', proficiency: 90, years: 4, projects: ['All Projects'] },
-      { name: 'SQL Querying', proficiency: 85, years: 3, projects: ['Database Systems'] }
-    ]
+  // 1. Gather all tech from projects
+  const techCounts: Record<string, { count: number; projects: string[] }> = {};
+  PROJECTS.forEach(proj => {
+    const allTechs = Array.from(new Set([...(proj.tech || []), ...(proj.technologies || [])]));
+    allTechs.forEach(t => {
+      let cleanTech = t.trim();
+      const lower = cleanTech.toLowerCase();
+      if (lower === 'react' || lower === 'react.js') cleanTech = 'React.js';
+      else if (lower === 'typescript') cleanTech = 'TypeScript';
+      else if (lower === 'javascript') cleanTech = 'JavaScript';
+      else if (lower === 'node.js' || lower === 'node') cleanTech = 'Node.js';
+      else if (lower === 'express' || lower === 'express.js') cleanTech = 'Express.js';
+      else if (lower === 'mongodb') cleanTech = 'MongoDB';
+      else if (lower === 'fastapi') cleanTech = 'FastAPI';
+      else if (lower === 'postgresql') cleanTech = 'PostgreSQL';
+      else if (lower === 'tailwindcss') cleanTech = 'TailwindCSS';
+      else if (lower === 'html') cleanTech = 'HTML';
+      else if (lower === 'css') cleanTech = 'CSS';
+      else if (lower === 'docker' || lower === 'docker compose') cleanTech = 'Docker';
+      else if (lower === 'github actions' || lower === 'git pipelines') cleanTech = 'GitHub Actions';
+      else if (lower === 'git') cleanTech = 'Git';
+      else if (lower === 'rag') cleanTech = 'RAG';
+      else if (lower === 'openai api') cleanTech = 'OpenAI API';
+      else if (lower === 'rest apis' || lower === 'rest api') cleanTech = 'REST APIs';
+
+      if (!techCounts[cleanTech]) {
+        techCounts[cleanTech] = { count: 0, projects: [] };
+      }
+      techCounts[cleanTech].count++;
+      if (!techCounts[cleanTech].projects.includes(proj.title)) {
+        techCounts[cleanTech].projects.push(proj.title);
+      }
+    });
+  });
+
+  const getCategoryForTech = (tech: string): string => {
+    const t = tech.toLowerCase();
+    if (['react.js', 'typescript', 'javascript', 'html', 'css', 'tailwindcss', 'bootstrap', 'framer motion', 'vite'].includes(t)) {
+      return 'Frontend';
+    }
+    if (['node.js', 'express.js', 'fastapi', 'rest apis', 'jwt'].includes(t)) {
+      return 'Backend';
+    }
+    if (['rag', 'vector search', 'openai api', 'sentence-transformers', 'tensorflow', 'keras', 'cnn', 'lstm', 'computer vision', 'algorithms', 'ai', 'llm', 'llms', 'prompt engineering'].includes(t)) {
+      return 'AI';
+    }
+    if (['mongodb', 'postgresql', 'nosql', 'local storage', 'mysql'].includes(t)) {
+      return 'Database';
+    }
+    if (['docker', 'github actions', 'git', 'github', 'devops', 'cicd'].includes(t)) {
+      return 'DevOps';
+    }
+    return 'Languages';
   };
 
+  const getProficiencyAndYears = (tech: string, count: number): { proficiency: number; years: number } => {
+    const t = tech.toLowerCase();
+    let baseProf = 80;
+    let baseYears = 1.5;
+
+    if (t === 'react.js' || t === 'javascript' || t === 'html' || t === 'css') {
+      baseProf = 92;
+      baseYears = 3;
+    } else if (t === 'typescript' || t === 'python') {
+      baseProf = 90;
+      baseYears = 2.5;
+    } else if (t === 'mongodb' || t === 'node.js' || t === 'git') {
+      baseProf = 85;
+      baseYears = 2.5;
+    } else if (t === 'rag' || t === 'openai api') {
+      baseProf = 88;
+      baseYears = 2;
+    } else if (t === 'docker' || t === 'fastapi' || t === 'postgresql') {
+      baseProf = 82;
+      baseYears = 2;
+    }
+
+    const proficiency = Math.min(98, baseProf + (count - 1) * 2);
+    const years = parseFloat((baseYears + (count - 1) * 0.5).toFixed(1));
+
+    return { proficiency, years };
+  };
+
+  const skillsData: Record<string, SkillDetail[]> = {
+    Frontend: [],
+    Backend: [],
+    AI: [],
+    Database: [],
+    DevOps: [],
+    Languages: []
+  };
+
+  Object.entries(techCounts).forEach(([tech, info]) => {
+    const cat = getCategoryForTech(tech);
+    const { proficiency, years } = getProficiencyAndYears(tech, info.count);
+    skillsData[cat].push({
+      name: tech,
+      proficiency,
+      years,
+      projects: info.projects
+    });
+  });
+
+  // Sort by usage frequency (count) descending, then by name
+  Object.keys(skillsData).forEach(cat => {
+    skillsData[cat].sort((a, b) => {
+      const countA = techCounts[a.name]?.count || 0;
+      const countB = techCounts[b.name]?.count || 0;
+      if (countB !== countA) return countB - countA;
+      return a.name.localeCompare(b.name);
+    });
+  });
+
+  // Filter out empty categories
+  const activeCategories = Object.keys(skillsData).filter(cat => skillsData[cat].length > 0);
+
+  const [selectedCategory, setSelectedCategory] = useState<string>(activeCategories.includes('Frontend') ? 'Frontend' : activeCategories[0] || 'Frontend');
+
   const handleSelectTech = (category: string, _list: string[]) => {
-    // Normalise casing
     const mapped: Record<string, string> = {
       'FRONTEND': 'Frontend',
       'BACKEND': 'Backend',
       'DATABASE': 'Database',
       'DEVOPS': 'DevOps',
-      'DESIGN': 'Tools'
+      'DEVOPS & CLOUD': 'DevOps',
+      'UI/UX & COLLAB': 'Languages'
     };
     const norm = mapped[category] || 'Frontend';
-    setSelectedCategory(norm);
+    if (activeCategories.includes(norm)) {
+      setSelectedCategory(norm);
+    }
   };
 
   return (
@@ -96,7 +171,7 @@ export const SkillsSection: React.FC = () => {
         <div className="space-y-5">
           {/* Categories Tab Selector */}
           <div className="flex flex-wrap gap-1.5 border-b border-white/5 pb-3">
-            {Object.keys(skillsData).map((cat) => (
+            {activeCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => {

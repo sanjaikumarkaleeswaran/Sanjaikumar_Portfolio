@@ -3,10 +3,16 @@ import type { ProjectData } from '../../types/project';
 // Vite-specific eager import of all JSON files in the same directory
 const projectModules = import.meta.glob<ProjectData>('./*.json', { eager: true });
 
-export const PROJECTS: ProjectData[] = Object.values(projectModules).map((mod: any) => {
-  // If the JSON is imported eagerly, the default export contains the JSON content
-  return mod.default || mod;
-});
+export const PROJECTS: ProjectData[] = Object.values(projectModules)
+  .map((mod: any) => {
+    // If the JSON is imported eagerly, the default export contains the JSON content
+    return mod.default || mod;
+  })
+  .sort((a, b) => {
+    const priorityA = a.displayPriority !== undefined ? a.displayPriority : 999;
+    const priorityB = b.displayPriority !== undefined ? b.displayPriority : 999;
+    return priorityA - priorityB;
+  });
 
 export const getAllProjects = (): ProjectData[] => {
   return PROJECTS;

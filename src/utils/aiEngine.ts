@@ -315,8 +315,41 @@ export const compileAnswer = (query: string): string => {
 
   // 1. DYNAMIC ROUTING RULES
 
+  // General projects overview questions (Flagship list)
+  if (
+    cleanQuery.includes('show your projects') ||
+    cleanQuery.includes('show projects') ||
+    cleanQuery.includes('best projects') ||
+    cleanQuery.includes('flagship projects') ||
+    cleanQuery.includes('top projects') ||
+    cleanQuery.includes('explain your work') ||
+    cleanQuery.includes('explain work') ||
+    cleanQuery.includes('list projects') ||
+    cleanQuery.includes('list your projects')
+  ) {
+    answer = `### 🌟 Flagship & Highlighted Engineering Projects\n\nHere are my projects, presented in order of flagship priority:\n\n`;
+    
+    // Sort projects strictly by displayPriority
+    const sortedProjects = [...PROJECTS].sort((a, b) => {
+      const priorityA = a.displayPriority !== undefined ? a.displayPriority : 999;
+      const priorityB = b.displayPriority !== undefined ? b.displayPriority : 999;
+      return priorityA - priorityB;
+    });
+
+    sortedProjects.forEach((p, idx) => {
+      answer += `${idx + 1}. **${p.title}**\n`;
+      answer += `   * *Category:* **${p.category}**\n`;
+      answer += `   * *Stack:* ${p.tech.join(', ')}\n`;
+      answer += `   * *Overview:* ${p.description}\n\n`;
+      relatedProjects.add(p.id);
+    });
+
+    sources.add('Featured Projects Case Studies (STAR)');
+    sources.add('Vite Dynamic Project Registry');
+  }
+
   // Comparison query logic: "compare X and Y"
-  if (cleanQuery.includes('compare') || cleanQuery.includes('versus') || cleanQuery.includes(' vs ')) {
+  else if (cleanQuery.includes('compare') || cleanQuery.includes('versus') || cleanQuery.includes(' vs ')) {
     const foundProjs: ProjectData[] = [];
     PROJECTS.forEach(p => {
       if (cleanQuery.includes(p.id) || cleanQuery.includes(p.slug) || cleanQuery.includes(p.title.toLowerCase().split(' ')[0])) {
@@ -390,6 +423,55 @@ export const compileAnswer = (query: string): string => {
       relatedProjects.add(p.id);
     });
     sources.add('Project System Metrics Registry');
+  }
+
+  // Show React projects
+  else if (cleanQuery.includes('react')) {
+    const reactProjs = PROJECTS.filter(p => 
+      p.tech.some(t => t.toLowerCase().includes('react')) ||
+      p.technologies.some(t => t.toLowerCase().includes('react'))
+    );
+    answer = `### ⚛️ React.js Projects\n\nThe following projects utilize **React.js** for building highly dynamic user interfaces:\n\n`;
+    reactProjs.forEach(p => {
+      answer += `- **${p.title}**\n  *React Integration:* ${p.architecture.find(a => a.role === 'Frontend')?.purpose || 'Dynamic web user interfaces.'}\n`;
+      relatedProjects.add(p.id);
+    });
+    sources.add('Vite Dynamic Project Registry');
+  }
+
+  // Show Node projects
+  else if (cleanQuery.includes('node') || cleanQuery.includes('express')) {
+    const nodeProjs = PROJECTS.filter(p => 
+      p.tech.some(t => t.toLowerCase().includes('node') || t.toLowerCase().includes('express')) ||
+      p.technologies.some(t => t.toLowerCase().includes('node') || t.toLowerCase().includes('express'))
+    );
+    answer = `### 🟢 Node.js & Express Projects\n\nThe following projects utilize **Node.js** and **Express** for backend API services:\n\n`;
+    nodeProjs.forEach(p => {
+      answer += `- **${p.title}**\n  *Backend Integration:* ${p.architecture.find(a => a.role === 'Backend')?.purpose || 'RESTful API services.'}\n`;
+      relatedProjects.add(p.id);
+    });
+    sources.add('Vite Dynamic Project Registry');
+  }
+
+  // Show Full Stack applications
+  else if (cleanQuery.includes('full-stack') || cleanQuery.includes('full stack') || cleanQuery.includes('applications')) {
+    const fsProjs = PROJECTS.filter(p => 
+      p.architecture.some(a => a.role === 'Frontend') && p.architecture.some(a => a.role === 'Backend')
+    );
+    answer = `### 🥞 Full-Stack Architectures\n\nHere are my full-stack applications integrating dynamic frontends with secure backend services:\n\n`;
+    fsProjs.forEach(p => {
+      const feNode = p.architecture.find(a => a.role === 'Frontend');
+      const beNode = p.architecture.find(a => a.role === 'Backend');
+      answer += `- **${p.title}**\n  *Frontend:* ${feNode ? feNode.name + ' (' + feNode.tech + ')' : 'React'}\n  *Backend:* ${beNode ? beNode.name + ' (' + beNode.tech + ')' : 'Node.js'}\n  *Database:* ${p.database || 'None'}\n`;
+      relatedProjects.add(p.id);
+    });
+    sources.add('Project System Architecture Graph');
+  }
+
+  // Explain RAG Pipeline
+  else if (cleanQuery.includes('rag pipeline') || cleanQuery.includes('how does your rag') || cleanQuery.includes('how does the rag')) {
+    answer = `### 🧠 Local Retrieval-Augmented Generation (RAG) Pipeline\n\nThis portfolio runs a fully client-side RAG engine to query portfolio context without external servers:\n\n1. **Document Chunking**: Project specifications, STAR case studies, resume details, and engineering architecture records are ingested and chunked.\n2. **TF-IDF Vectorization**: Query terms are parsed, filtered for stop words, and vectorized on-the-fly.\n3. **Cosine Similarity Search**: The system calculates similarity scores between the query vector and all chunk vectors, sorting by matching weights.\n4. **Safeguard Shield**: If similarity scores are too low (< 0.12), the engine intercepts to prevent hallucination by showing a system boundary warning.\n5. **Dynamic Prompt Context**: Context chunks are combined to generate structured responses.`;
+    sources.add('RAG System Design specifications');
   }
 
   // Show Docker projects

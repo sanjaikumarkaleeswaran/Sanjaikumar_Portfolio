@@ -25,6 +25,14 @@ export const CareerChronology: React.FC = () => {
       metric: '90% Match Accuracy'
     },
     {
+      year: '2024',
+      title: 'Smart Flashcard Generator',
+      category: 'Project',
+      sub: 'AI Spaced Repetition Learning Suite',
+      details: 'Engineered an AI-driven learning assistant utilizing OpenAI completions to ingest PDFs and output custom spaced repetition flashcards automatically.',
+      metric: '40% Retention Increase'
+    },
+    {
       year: '2021 - 2025',
       title: 'B.Sc. Software Systems (Integrated Track)',
       category: 'Education',

@@ -25,6 +25,7 @@ export interface ProjectData {
   id: string; // matches slug
   slug: string;
   title: string;
+  displayPriority?: number;
   description: string;
   shortDescription: string;
   status: 'Production' | 'Completed' | 'Beta' | 'Alpha' | 'Active';
