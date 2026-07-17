@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Cpu, AlertCircle, CheckCircle, Info, FileText } from 'lucide-react';
 
 // Context (always needed)
@@ -9,9 +9,9 @@ import { Header } from './components/ui/Header';
 import { OSDock } from './components/ui/OSDock';
 import { OSWindow } from './components/ui/OSWindow';
 import { CustomCursor } from './components/ui/CustomCursor';
-import { CommandPalette } from './components/ui/CommandPalette';
-import { RecruiterTour } from './components/ui/RecruiterTour';
-import { ResponsiveRecruiterHub } from './components/ui/ResponsiveRecruiterHub';
+const CommandPalette = lazy(() => import('./components/ui/CommandPalette').then(m => ({ default: m.CommandPalette })));
+const RecruiterTour = lazy(() => import('./components/ui/RecruiterTour').then(m => ({ default: m.RecruiterTour })));
+const ResponsiveRecruiterHub = lazy(() => import('./components/ui/ResponsiveRecruiterHub').then(m => ({ default: m.ResponsiveRecruiterHub })));
 
 // Heavy components — lazy loaded to split into async chunks
 const Background3D     = lazy(() => import('./components/canvas/Background3D').then(m => ({ default: m.Background3D })));
@@ -48,7 +48,11 @@ function AppContent() {
     addNotification,
     isRecruiterMode,
     setIsRecruiterMode,
-    setHasBooted
+    setHasBooted,
+    hasBooted,
+    isCommandPaletteOpen,
+    setIsCommandPaletteOpen,
+    isTourActive
   } = useOS();
 
   // OS Window Toggles
@@ -59,7 +63,7 @@ function AppContent() {
   // Tab alignment inside Dock
   const [activeTab, setActiveTab] = useState<string>('hero');
 
-  // Staged loading: 0=booting, 1=post-boot UI, 2=background3D, 3=everything
+  // Staged loading: 0=booting, 3=everything
   const [loadStage, setLoadStage] = useState(() => {
     const sessionBooted = sessionStorage.getItem('sanjai_os_booted');
     return sessionBooted ? 3 : 0;
@@ -79,6 +83,11 @@ function AppContent() {
   }, [playAudioCue]);
 
   // Boot sequence loader states
+  const [renderBootScreen, setRenderBootScreen] = useState(() => {
+    const sessionBooted = sessionStorage.getItem('sanjai_os_booted');
+    return !sessionBooted;
+  });
+  const [isBootFading, setIsBootFading] = useState(false);
   const [isBooting, setIsBooting] = useState(() => {
     const sessionBooted = sessionStorage.getItem('sanjai_os_booted');
     return !sessionBooted;
@@ -87,22 +96,32 @@ function AppContent() {
   const [bootProgress, setBootProgress] = useState(0);
   const [bootLogs, setBootLogs] = useState<string[]>([]);
 
-  const bootTimeoutsRef = useRef<number[]>([]);
+  // Preload Image helper (parallel asset loader)
+  const preloadImage = (url: string): Promise<void> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  };
 
   // Skip boot function
   const skipBoot = useCallback(async () => {
-    bootTimeoutsRef.current.forEach(clearTimeout);
-    bootTimeoutsRef.current = [];
-    setIsBooting(false);
-    setHasBooted(true);
-    setLoadStage(3); // direct to stage 3
-    sessionStorage.setItem('sanjai_os_booted', 'true');
-    try {
-      const confetti = await loadConfetti();
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-    } catch (e) {
-      console.warn('Confetti load failed', e);
-    }
+    setIsBootFading(true);
+    setTimeout(async () => {
+      setIsBooting(false);
+      setRenderBootScreen(false);
+      setHasBooted(true);
+      setLoadStage(3);
+      sessionStorage.setItem('sanjai_os_booted', 'true');
+      try {
+        const confetti = await loadConfetti();
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } catch (e) {
+        console.warn('Confetti load failed', e);
+      }
+    }, 300);
   }, [setHasBooted]);
 
   // If session already booted, mark in context immediately
@@ -126,86 +145,147 @@ function AppContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isBooting, skipBoot]);
 
-  // Timed Choreographed Boot Sequence
+  // Global command palette Ctrl+K listener (code splitting trigger)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        (document.activeElement as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        playAudioCue('click');
+        setIsCommandPaletteOpen(!isCommandPaletteOpen);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [playAudioCue, isCommandPaletteOpen, setIsCommandPaletteOpen]);
+
+  // Background module preloader to warm up lazy chunks on idle time
+  useEffect(() => {
+    if (!hasBooted) return;
+    const prefetchModules = () => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => {
+          import('./components/ui/AIAssistant');
+          import('./components/ui/TerminalWindow');
+          import('./components/canvas/Background3D');
+          import('./components/sections/ResumeOptimizer');
+          import('./components/sections/MetricsDashboard');
+          import('./components/ui/RecruiterTour');
+          import('./components/ui/ResponsiveRecruiterHub');
+        });
+      } else {
+        setTimeout(() => {
+          import('./components/ui/AIAssistant');
+          import('./components/ui/TerminalWindow');
+          import('./components/canvas/Background3D');
+          import('./components/sections/ResumeOptimizer');
+          import('./components/sections/MetricsDashboard');
+          import('./components/ui/RecruiterTour');
+          import('./components/ui/ResponsiveRecruiterHub');
+        }, 2000);
+      }
+    };
+    prefetchModules();
+  }, [hasBooted]);
+
+  // Parallelized Actual Boot Sequence Loader
   useEffect(() => {
     if (!isBooting) return;
 
-    // 0ms: solid black screen
-    // 200ms: fade in the glow & borders of the boot window
-    const t1 = window.setTimeout(() => {
-      setShowBootContainer(true);
-    }, 200);
+    let active = true;
 
-    // 500ms: Power On sound + log. Progress = 15%
-    const t2 = window.setTimeout(() => {
-      playAudioCue('boot-poweron');
-      setBootProgress(15);
-      setBootLogs(prev => [...prev, 'SYSTEM POWER: ONLINE [100%]']);
-    }, 500);
+    // Responsive Boot Duration Limits (Requirement 4)
+    const width = window.innerWidth;
+    const maxBootTime = width < 768 ? 1000 : width <= 1024 ? 1200 : 1500;
 
-    // 800ms: System Initializing + log. Progress = 35%
-    const t3 = window.setTimeout(() => {
-      playAudioCue('boot-init');
-      setBootProgress(35);
-      setBootLogs(prev => [...prev, 'BOOT INITIALIZATION: VERIFYING INTEGRITY...']);
-    }, 800);
+    // 1. Instantly display boot container
+    const tContainer = setTimeout(() => {
+      if (active) setShowBootContainer(true);
+    }, 50);
 
-    // 1100ms: AI Core Loading + log. Progress = 55%
-    const t4 = window.setTimeout(() => {
-      playAudioCue('boot-loading');
-      setBootProgress(55);
-      setBootLogs(prev => [...prev, 'AI CORE ONLINE: LOADING DEEPMIND DIALOG MODELS...']);
-    }, 1100);
+    // 2. Play power on procedural audio cue
+    playAudioCue('boot-poweron');
 
-    // 1400ms: Satellite orbit connection + log. Progress = 75%
-    const t5 = window.setTimeout(() => {
-      playAudioCue('boot-init');
-      setBootProgress(75);
-      setBootLogs(prev => [...prev, 'NEURAL NETWORK CONNECTED: TECH GALAXY ORBITS STABLE...']);
-    }, 1400);
+    const steps = [
+      { progress: 5, log: 'SYSTEM POWER: ONLINE [100%]', time: 0 },
+      { progress: 20, log: 'BOOT INITIALIZATION: VERIFYING INTEGRITY...', time: 100 },
+      { progress: 40, log: 'CORE SYSTEM COMPONENTS INSTANTIATED...', time: 200 },
+      { progress: 60, log: 'PORTFOLIO REGISTRY INSTANTIATED: 6 projects loaded.', time: 300 }
+    ];
 
-    // 1700ms: Mission Control Online + log. Progress = 90%
-    const t6 = window.setTimeout(() => {
-      playAudioCue('boot-online');
-      setBootProgress(90);
-      setBootLogs(prev => [...prev, 'MISSION CONTROL READY: DISPATCHING CENTRAL HUD STREAMS...']);
-    }, 1700);
+    // Trigger progressive loader updates
+    const timers = steps.map(step => {
+      return setTimeout(() => {
+        if (!active) return;
+        setBootProgress(step.progress);
+        setBootLogs(prev => [...prev, step.log]);
+        if (step.progress === 20) playAudioCue('boot-init');
+      }, step.time);
+    });
 
-    // 2000ms: Success chime + completion log. Progress = 100%
-    const t7 = window.setTimeout(() => {
-      playAudioCue('boot-success');
+    // 3. Parallel resource loader promise
+    const loadPromise = Promise.all([
+      document.fonts.ready,
+      preloadImage('/sanjai_hologram.png')
+    ]);
+
+    // Safety guard to transition immediately when max boot duration is met
+    const tSafety = setTimeout(() => {
+      finishBootSequence();
+    }, maxBootTime);
+
+    const finishBootSequence = async () => {
+      if (!active) return;
+      active = false;
+      
       setBootProgress(100);
       setBootLogs(prev => [...prev, 'SYSTEM READY. INTERFACE BOOT SUCCESS.']);
-    }, 2000);
+      playAudioCue('boot-success');
 
-    // 2300ms: Transition to workspace + Stage 1 (Hero UI)
-    const t8 = window.setTimeout(async () => {
-      setIsBooting(false);
-      setHasBooted(true);
-      setLoadStage(1);
-      sessionStorage.setItem('sanjai_os_booted', 'true');
-      const confetti = await loadConfetti();
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-    }, 2300);
+      setTimeout(() => {
+        setIsBootFading(true);
+        setTimeout(async () => {
+          setIsBooting(false);
+          setRenderBootScreen(false);
+          setHasBooted(true);
+          setLoadStage(3);
+          sessionStorage.setItem('sanjai_os_booted', 'true');
+          try {
+            const confetti = await loadConfetti();
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+          } catch (e) {
+            console.warn('Confetti load failed', e);
+          }
+        }, 300); // 300ms smooth fade out
+      }, 100);
+    };
 
-    bootTimeoutsRef.current = [t1, t2, t3, t4, t5, t6, t7, t8];
+    // When actual fonts and critical images resolve
+    loadPromise.then(() => {
+      if (!active) return;
+      clearTimeout(tSafety);
+      setBootProgress(80);
+      setBootLogs(prev => [...prev, 'ASSET PRELOAD: /sanjai_hologram.png and fonts cached.']);
+      playAudioCue('boot-online');
+      
+      setTimeout(() => {
+        finishBootSequence();
+      }, 80);
+    });
 
     return () => {
-      bootTimeoutsRef.current.forEach(clearTimeout);
+      active = false;
+      clearTimeout(tContainer);
+      clearTimeout(tSafety);
+      timers.forEach(clearTimeout);
     };
   }, [isBooting, playAudioCue, setHasBooted]);
-
-  // Staged Loading Sequence
-  useEffect(() => {
-    if (loadStage === 1) {
-      const t = setTimeout(() => setLoadStage(2), 300);
-      return () => clearTimeout(t);
-    }
-    if (loadStage === 2) {
-      const t = setTimeout(() => setLoadStage(3), 600);
-      return () => clearTimeout(t);
-    }
-  }, [loadStage]);
 
   // Synchronize ActiveTab with ActiveWindow
   useEffect(() => {
@@ -294,19 +374,21 @@ function AppContent() {
       {/* Custom Cursor Pointer */}
       <CustomCursor />
 
-      {/* BIOS System Boot Loader Overlay — Pure CSS, no framer-motion */}
-      {isBooting && (
-        <div className={`fixed inset-0 bg-[#02000a] z-[99999] flex items-center justify-center p-4 font-mono select-none transition-all duration-700 ease-in-out ${!isBooting ? 'opacity-0 scale-105 blur-xl pointer-events-none' : ''}`}>
+      {/* BIOS System Boot Loader Overlay — GPU-optimized CSS */}
+      {renderBootScreen && (
+        <div className={`fixed inset-0 bg-[#02000a] z-[99999] flex items-center justify-center p-4 font-mono select-none transition-all duration-300 ease-out will-change-[transform,opacity] ${
+          isBootFading ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
+        }`}>
           {/* Ambient radial glow that pulses during boot */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div
-              className={`w-[600px] h-[600px] rounded-full transition-all duration-1000 ${showBootContainer ? 'opacity-40 scale-100 animate-[bootGlow_3s_ease-in-out_infinite]' : 'opacity-0 scale-50'}`}
-              style={{ background: 'radial-gradient(ellipse, rgba(0,240,255,0.08) 0%, transparent 70%)' }}
+              className={`w-[600px] h-[600px] rounded-full transition-all duration-1000 will-change-transform ${showBootContainer ? 'opacity-30 scale-100 animate-[bootGlow_3s_ease-in-out_infinite]' : 'opacity-0 scale-50'}`}
+              style={{ background: 'radial-gradient(ellipse, rgba(0,240,255,0.06) 0%, transparent 70%)' }}
             />
           </div>
 
           {showBootContainer && (
-            <div className="w-full max-w-[580px] border border-cyber-cyan/30 rounded-2xl p-6 bg-black/90 backdrop-blur-xl shadow-[0_0_80px_rgba(0,240,255,0.12),0_0_0_1px_rgba(0,240,255,0.05)] flex flex-col justify-between h-[400px] relative overflow-hidden animate-[bootContainerIn_0.55s_cubic-bezier(0.16,1,0.3,1)_both]">
+            <div className="w-full max-w-[580px] border border-cyber-cyan/30 rounded-2xl p-6 bg-black/90 shadow-[0_0_40px_rgba(0,240,255,0.08),0_0_0_1px_rgba(0,240,255,0.05)] flex flex-col justify-between h-[400px] relative overflow-hidden will-change-transform animate-[bootContainerIn_0.45s_cubic-bezier(0.16,1,0.3,1)_both]">
               {/* Decorative corner accents */}
               <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyber-cyan/40 rounded-tl-2xl pointer-events-none" />
               <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyber-cyan/40 rounded-tr-2xl pointer-events-none" />
@@ -335,8 +417,7 @@ function AppContent() {
                 {bootLogs.map((log, index) => (
                   <div
                     key={index}
-                    className="text-cyber-green font-bold flex items-center gap-2 animate-[bootLogIn_0.3s_ease_both]"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="text-cyber-green font-bold flex items-center gap-2 will-change-transform animate-[bootLogIn_0.25s_ease_both]"
                   >
                     <span className="text-cyber-cyan opacity-60">›</span> {log}
                   </div>
@@ -351,7 +432,7 @@ function AppContent() {
                 </div>
                 <div className="h-1 bg-slate-900/80 border border-white/5 rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta shadow-[0_0_12px_rgba(0,240,255,0.7)] transition-all duration-600 ease-out"
+                    className="h-full rounded-full bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta shadow-[0_0_12px_rgba(0,240,255,0.7)] transition-all duration-300 ease-out will-change-[width]"
                     style={{ width: `${bootProgress}%` }}
                   />
                 </div>
@@ -365,11 +446,15 @@ function AppContent() {
       <Header />
 
       {/* Global Command palette search (Ctrl+K) */}
-      <CommandPalette 
-        setIsTerminalOpen={setIsTerminalOpen}
-        setIsAICopilotOpen={setIsAICopilotOpen}
-        setActiveTab={setActiveTab}
-      />
+      {isCommandPaletteOpen && (
+        <Suspense fallback={null}>
+          <CommandPalette 
+            setIsTerminalOpen={setIsTerminalOpen}
+            setIsAICopilotOpen={setIsAICopilotOpen}
+            setActiveTab={setActiveTab}
+          />
+        </Suspense>
+      )}
 
       {/* Interactive Floating Notifications Drawer — Pure CSS */}
       <div className="fixed top-18 right-6 z-[9999] flex flex-col gap-3 max-w-[320px] pointer-events-none">
@@ -641,7 +726,9 @@ function AppContent() {
         )}
 
         {/* RECRUIT_HUD Responsive Floating Action Hub */}
-        <ResponsiveRecruiterHub setIsAICopilotOpen={setIsAICopilotOpen} />
+        <Suspense fallback={null}>
+          <ResponsiveRecruiterHub setIsAICopilotOpen={setIsAICopilotOpen} />
+        </Suspense>
 
       </main>
 
@@ -656,7 +743,11 @@ function AppContent() {
       />
 
       {/* Recruiter Guided Tour HUD */}
-      <RecruiterTour />
+      {isTourActive && (
+        <Suspense fallback={null}>
+          <RecruiterTour />
+        </Suspense>
+      )}
     </div>
   );
 }

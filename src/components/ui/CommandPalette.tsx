@@ -39,21 +39,16 @@ export const CommandPalette: React.FC<{
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Keybindings for Ctrl+K and Esc
+  // Keybindings for Esc
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        playAudioCue('click');
-        setIsCommandPaletteOpen(!isCommandPaletteOpen);
-      }
       if (e.key === 'Escape' && isCommandPaletteOpen) {
         setIsCommandPaletteOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCommandPaletteOpen]);
+  }, [isCommandPaletteOpen, setIsCommandPaletteOpen]);
 
   // Focus input on open
   useEffect(() => {
