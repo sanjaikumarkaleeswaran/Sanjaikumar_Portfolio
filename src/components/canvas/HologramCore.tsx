@@ -38,8 +38,8 @@ class NeuralSphereMaterial extends THREE.ShaderMaterial {
           vec3 u = f*f*(3.0-2.0*f);
           return mix(mix(mix(dot(hash3(i+vec3(0,0,0)),f-vec3(0,0,0)),
                              dot(hash3(i+vec3(1,0,0)),f-vec3(1,0,0)),u.x),
-                         mix(dot(hash3(i+vec3(0,1,0)),f-vec3(0,1,0)),
-                             dot(hash3(i+vec3(1,1,0)),f-vec3(1,1,0)),u.x),u.y),
+                          mix(dot(hash3(i+vec3(0,1,0)),f-vec3(0,1,0)),
+                              dot(hash3(i+vec3(1,1,0)),f-vec3(1,1,0)),u.x),u.y),
                      mix(mix(dot(hash3(i+vec3(0,0,1)),f-vec3(0,0,1)),
                              dot(hash3(i+vec3(1,0,1)),f-vec3(1,0,1)),u.x),
                          mix(dot(hash3(i+vec3(0,1,1)),f-vec3(0,1,1)),
@@ -202,12 +202,11 @@ class PulseRingMaterial extends THREE.ShaderMaterial {
 extend({ PulseRingMaterial });
 
 // ─── NEURAL SPHERE ────────────────────────────────────────────────────────────
-function NeuralSphere({ scroll, pulseIntensity, isMobile }: { scroll: number; pulseIntensity: number; isMobile: boolean }) {
+function NeuralSphere({ scroll, pulseIntensity, isMobile, mousePos }: { scroll: number; pulseIntensity: number; isMobile: boolean; mousePos: { x: number; y: number } }) {
   const pointsRef   = useRef<THREE.Points>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const timeRef     = useRef(0);
 
-  // Quality settings: cap particle counts based on mobile detection
   const particleCount = useMemo(() => (isMobile ? 800 : 3000), [isMobile]);
 
   const positions = useMemo(() => {
@@ -234,12 +233,12 @@ function NeuralSphere({ scroll, pulseIntensity, isMobile }: { scroll: number; pu
         pulseIntensity,
         0.08
       );
-      materialRef.current.uniforms.uMouse.value.set(_.pointer.x, _.pointer.y);
+      materialRef.current.uniforms.uMouse.value.set(mousePos.x, mousePos.y);
     }
     if (pointsRef.current) {
       pointsRef.current.rotation.y += 0.0035;
       pointsRef.current.rotation.x = THREE.MathUtils.lerp(
-        pointsRef.current.rotation.x, _.pointer.y * -0.15, 0.05
+        pointsRef.current.rotation.x, mousePos.y * -0.15, 0.05
       );
     }
   });
@@ -256,16 +255,16 @@ function NeuralSphere({ scroll, pulseIntensity, isMobile }: { scroll: number; pu
 }
 
 // ─── GLASS SHELL ─────────────────────────────────────────────────────────────
-function GlassShell() {
+function GlassShell({ mousePos }: { mousePos: { x: number; y: number } }) {
   const meshRef     = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const timeRef     = useRef(0);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     timeRef.current += delta;
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = timeRef.current;
-      materialRef.current.uniforms.uMouse.value.set(state.pointer.x, state.pointer.y);
+      materialRef.current.uniforms.uMouse.value.set(mousePos.x, mousePos.y);
     }
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.0018;
@@ -368,12 +367,10 @@ function SatelliteNodes({ isMobile, pulseIntensity }: { isMobile: boolean; pulse
         const z = Math.sin(sat.phase) * sat.orbit;
         const y = Math.sin(sat.phase * 1.2) * 0.55;
 
-        // Render line coordinates
         const linePos = new Float32Array([0, 0, 0, x, y, z]);
 
         return (
           <group key={sat.id}>
-            {/* Dynamic neural connection line */}
             <line>
               <bufferGeometry attach="geometry">
                 <float32BufferAttribute
@@ -389,7 +386,6 @@ function SatelliteNodes({ isMobile, pulseIntensity }: { isMobile: boolean; pulse
               />
             </line>
 
-            {/* Satellite Node mesh */}
             <group position={[x, y, z]}>
               <mesh>
                 <sphereGeometry args={[sat.size, 10, 10]} />
@@ -399,7 +395,6 @@ function SatelliteNodes({ isMobile, pulseIntensity }: { isMobile: boolean; pulse
                   opacity={0.9}
                 />
               </mesh>
-              {/* Volumetric glow mesh */}
               <mesh>
                 <sphereGeometry args={[sat.size * 2.2, 6, 6]} />
                 <meshBasicMaterial
@@ -460,7 +455,7 @@ function EnergyPulseWaves() {
 }
 
 // ─── SCENE WRAPPER ────────────────────────────────────────────────────────────
-function AICore({ pulseIntensity, isMobile }: { pulseIntensity: number; isMobile: boolean }) {
+function AICore({ pulseIntensity, isMobile, mousePos }: { pulseIntensity: number; isMobile: boolean; mousePos: { x: number; y: number } }) {
   const [scroll, setScroll] = useState(0);
 
   useEffect(() => {
@@ -478,8 +473,8 @@ function AICore({ pulseIntensity, isMobile }: { pulseIntensity: number; isMobile
       <pointLight position={[3, 3, 3]}   intensity={1.0} color="#00f0ff" />
       <pointLight position={[-3, -3, -2]} intensity={0.7} color="#9d4edd" />
 
-      <NeuralSphere scroll={scroll} pulseIntensity={pulseIntensity} isMobile={isMobile} />
-      <GlassShell />
+      <NeuralSphere scroll={scroll} pulseIntensity={pulseIntensity} isMobile={isMobile} mousePos={mousePos} />
+      <GlassShell mousePos={mousePos} />
       <EnergyRings isMobile={isMobile} />
       <SatelliteNodes isMobile={isMobile} pulseIntensity={pulseIntensity} />
       {!isMobile && <EnergyPulseWaves />}
@@ -495,6 +490,21 @@ export const HologramCore: React.FC = () => {
 
   // Thinking pulse bursts simulation
   const [pulseIntensity, setPulseIntensity] = useState(1);
+
+  // Scanner interactive states
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [isBlinking, setIsBlinking] = useState(false);
+  const [glitchActive, setGlitchActive] = useState(false);
+  const [glitchStyle, setGlitchStyle] = useState<React.CSSProperties>({});
+  
+  // Real-time fluctuating HUD metrics
+  const [hudStats, setHudStats] = useState({ temp: '33.2°C', load: '94.2%', speed: '5.20 GHz' });
+  
+  // Smoothly interpolated transforms for the avatar photo
+  const [avatarTransform, setAvatarTransform] = useState('');
+  const transformRef = useRef({ rotX: 0, rotY: 0, floatY: 0, breatheScale: 1 });
 
   // Monitor visibility & screen size responsive bounds
   useEffect(() => {
@@ -513,19 +523,130 @@ export const HologramCore: React.FC = () => {
     };
   }, []);
 
+  // RequestAnimationFrame driven smooth animation updates for UI elements
+  useEffect(() => {
+    let animId: number;
+    let time = 0;
+
+    const update = () => {
+      time += 0.016;
+
+      // 1. Floating offset (sine wave)
+      const floatY = Math.sin(time * 2.0) * 3; // 3px delta
+
+      // 2. Breathing scale oscillation
+      const breatheScale = 1.0 + Math.sin(time * 1.2) * 0.01;
+
+      // 3. Head/Eye rotation looking towards cursor
+      const targetRotX = mousePos.y * -14; 
+      const targetRotY = mousePos.x * 16; 
+      const slowTiltZ = Math.sin(time * 0.6) * 1.5; // ±1.5° slow rotation
+
+      // Smooth interpolation (lerp)
+      transformRef.current.rotX += (targetRotX - transformRef.current.rotX) * 0.08;
+      transformRef.current.rotY += (targetRotY - transformRef.current.rotY) * 0.08;
+      transformRef.current.floatY = floatY;
+      transformRef.current.breatheScale = breatheScale;
+
+      // Compose final transform statement
+      const scaleMultiplier = isHovered ? 1.08 : 1.0;
+      setAvatarTransform(
+        `translateY(${transformRef.current.floatY}px) scale(${transformRef.current.breatheScale * scaleMultiplier}) rotateX(${transformRef.current.rotX}deg) rotateY(${transformRef.current.rotY}deg) rotateZ(${slowTiltZ}deg)`
+      );
+
+      animId = requestAnimationFrame(update);
+    };
+
+    animId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animId);
+  }, [mousePos, isHovered]);
+
+  // Mouse move listener to map viewport coordinates to container space
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1; // -1 to 1 range
+    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1; // -1 to 1 range
+    setMousePos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos({ x: 0, y: 0 });
+    setIsHovered(false);
+  };
+
   // Periodic simulated thinking neural animation
   useEffect(() => {
     const triggerPulse = () => {
       setPulseIntensity(2.4);
       playAudioCue('sparkle');
-      setTimeout(() => setPulseIntensity(1.0), 1000);
+      setTimeout(() => setPulseIntensity(1.0), 1200);
     };
-    const timer = setInterval(triggerPulse, 5500);
+    const timer = setInterval(triggerPulse, 6200);
     return () => clearInterval(timer);
   }, [playAudioCue]);
 
+  // Eyelid blink simulator via clip-path
+  useEffect(() => {
+    const triggerBlink = () => {
+      setIsBlinking(true);
+      setTimeout(() => setIsBlinking(false), 120);
+
+      const nextBlink = 3000 + Math.random() * 3000;
+      setTimeout(triggerBlink, nextBlink);
+    };
+    const timer = setTimeout(triggerBlink, 4200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Occasional random digital glitches + RGB channel shift simulation
+  useEffect(() => {
+    const triggerGlitch = () => {
+      if (isMobile) return; // Disable expensive glitch effects on mobile
+
+      setGlitchActive(true);
+      const shiftX = (Math.random() - 0.5) * 6;
+      const shiftY = (Math.random() - 0.5) * 4;
+      const hue = Math.floor(Math.random() * 360);
+
+      setGlitchStyle({
+        transform: `translate(${shiftX}px, ${shiftY}px) scale(1.05)`,
+        filter: `hue-rotate(${hue}deg) saturate(2) contrast(1.4)`,
+        opacity: 0.85
+      });
+
+      setTimeout(() => {
+        setGlitchActive(false);
+        setGlitchStyle({});
+      }, 130);
+
+      const nextGlitch = 5000 + Math.random() * 6000;
+      setTimeout(triggerGlitch, nextGlitch);
+    };
+    const timer = setTimeout(triggerGlitch, 5500);
+    return () => clearTimeout(timer);
+  }, [isMobile]);
+
+  // Modulate HUD diagnostic variables
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHudStats({
+        temp: `${(32.8 + Math.random() * 2.5).toFixed(1)}°C`,
+        load: `${(92.1 + Math.random() * 6.8).toFixed(1)}%`,
+        speed: `${(5.12 + Math.random() * 0.16).toFixed(2)} GHz`
+      });
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="w-full h-full min-h-[300px] md:min-h-[420px] relative flex items-center justify-center select-none">
+    <div 
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      className="w-full h-full min-h-[300px] md:min-h-[420px] relative flex items-center justify-center select-none cursor-crosshair"
+    >
       
       {/* 3D Neural Canvas layer (z-10) */}
       <div className="absolute inset-0 z-10">
@@ -535,55 +656,129 @@ export const HologramCore: React.FC = () => {
           dpr={[1, 1.2]}
           frameloop={isVisible ? 'always' : 'never'}
         >
-          <AICore pulseIntensity={pulseIntensity} isMobile={isMobile} />
+          <AICore pulseIntensity={pulseIntensity} isMobile={isMobile} mousePos={mousePos} />
         </Canvas>
       </div>
 
       {/* Holographic scanner profile identity card (z-20) */}
-      <div className="absolute z-20 w-32 h-32 md:w-40 md:h-40 flex items-center justify-center pointer-events-none">
+      <div className="absolute z-20 w-36 h-36 md:w-48 md:h-48 flex items-center justify-center pointer-events-none">
         
+        {/* Animated HUD SVG overlays rotating around the profile */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-70">
+          <svg className="absolute w-full h-full animate-[spin_45s_linear_infinite]" viewBox="0 0 200 200">
+            {/* Outer dotted tracking track */}
+            <circle cx="100" cy="100" r="92" stroke="#00f0ff" strokeWidth="0.5" strokeDasharray="3,7" fill="none" opacity="0.35" />
+            {/* Inner secondary solid rings */}
+            <circle cx="100" cy="100" r="80" stroke="#9d4edd" strokeWidth="0.75" fill="none" opacity="0.2" />
+            {/* Hexagonal coordinate frame */}
+            <polygon points="100,15 174,58 174,142 100,185 26,142 26,58" stroke="#ff007f" strokeWidth="0.4" fill="none" opacity="0.15" className="animate-[spin_30s_linear_infinite_reverse]" />
+          </svg>
+          <svg className="absolute w-[86%] h-[86%] animate-[spin_18s_linear_infinite_reverse]" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="88" stroke="#00f0ff" strokeWidth="1.2" strokeDasharray="1,15" fill="none" opacity="0.5" />
+          </svg>
+        </div>
+
         {/* Futuristic circular scan shell */}
-        <div className="relative w-24 h-24 md:w-30 md:h-30 rounded-full overflow-hidden border border-cyber-cyan/40 bg-black/60 shadow-[0_0_20px_rgba(0,240,255,0.25)]">
+        <div 
+          className="relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border bg-black/75 transition-all duration-300 z-10"
+          style={{ 
+            borderColor: isHovered ? 'var(--color-cyber-cyan)' : 'rgba(0,240,255,0.4)',
+            boxShadow: isHovered 
+              ? '0 0 25px rgba(0,240,255,0.5), inset 0 0 15px rgba(0,240,255,0.2)' 
+              : '0 0 15px rgba(0,240,255,0.2)'
+          }}
+        >
+          {/* Holographic scanner screen static overlay */}
+          <div className="absolute inset-0 z-20 pointer-events-none mix-blend-overlay opacity-30 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,4px_100%]" />
+
+          {/* Core Profile Photo */}
           <img 
             src="/sanjai_hologram.png" 
             alt="Sanjai P K Hologram Scan" 
-            className="w-full h-full object-cover filter contrast-125 brightness-105 mix-blend-screen opacity-85 select-none" 
+            style={{ 
+              transform: avatarTransform,
+              clipPath: isBlinking ? 'inset(50% 0 50% 0)' : 'inset(0% 0 0% 0)',
+              transition: isBlinking ? 'clip-path 80ms ease-out' : 'clip-path 120ms ease-in',
+              filter: `contrast(130%) brightness(${pulseIntensity > 1 ? 1.45 : isHovered ? 1.2 : 1.05}) saturate(${pulseIntensity > 1 ? 1.5 : 1.1})`,
+            }}
+            className="w-full h-full object-cover mix-blend-screen opacity-85 select-none transition-all duration-300" 
           />
+
+          {/* Glitch Overlay copy */}
+          {glitchActive && (
+            <img 
+              src="/sanjai_hologram.png" 
+              alt="Sanjai P K Glitch" 
+              style={glitchStyle}
+              className="absolute inset-0 w-full h-full object-cover mix-blend-screen select-none z-10"
+            />
+          )}
+
           {/* Circular scanner reticle crosshairs */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* Center target dot */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
             <div className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping" />
             <div className="w-1 h-1 rounded-full bg-cyber-cyan" />
-            
-            {/* Crosshair lines */}
-            <div className="absolute w-8 h-[0.5px] bg-cyber-cyan/30" />
-            <div className="absolute h-8 w-[0.5px] bg-cyber-cyan/30" />
-            
-            {/* Secondary rings */}
-            <div className="absolute w-12 h-12 rounded-full border border-dashed border-cyber-cyan/25 animate-[spin_10s_linear_infinite]" />
+            <div className="absolute w-8 h-[0.5px] bg-cyber-cyan/35" />
+            <div className="absolute h-8 w-[0.5px] bg-cyber-cyan/35" />
+            <div className="absolute w-12 h-12 rounded-full border border-dashed border-cyber-cyan/20 animate-[spin_10s_linear_infinite]" />
             <div className="absolute w-16 h-16 rounded-full border border-cyber-cyan/15 animate-[pulse_2s_infinite]" />
           </div>
-          {/* Scanning sweep line */}
-          <div className="absolute inset-x-0 h-[2px] bg-cyber-cyan/90 shadow-[0_0_8px_rgba(0,240,255,0.9)] animate-[scannerSweep_3s_infinite_linear]" />
-          {/* Radar HUD circular line */}
-          <div className="absolute inset-0 rounded-full border border-dashed border-cyber-cyan/30 animate-[spin_6s_linear_infinite]" />
+
+          {/* Laser scanning sweep line */}
+          <div 
+            className="absolute inset-x-0 h-[2.5px] bg-cyber-cyan/90 z-20 shadow-[0_0_10px_rgba(0,240,255,0.95)]"
+            style={{
+              animation: pulseIntensity > 1 
+                ? 'scannerSweep 1.2s infinite linear' 
+                : 'scannerSweep 3.2s infinite linear'
+            }}
+          />
+          {/* Rotating dashed ring */}
+          <div className="absolute inset-1 rounded-full border border-dashed border-cyber-cyan/20 animate-[spin_8s_linear_infinite] z-20" />
         </div>
 
-        {/* Outer Tech scan decorations */}
-        <div className="absolute inset-0 rounded-full border border-dashed border-cyber-purple/35 animate-[spin_16s_linear_infinite]" />
-        <div className="absolute -inset-2 rounded-full border border-cyber-cyan/20 animate-[spin_24s_linear_infinite_reverse]" />
+        {/* Outer tech scan frame and status indicators */}
+        <div className="absolute inset-2 rounded-full border border-dashed border-cyber-purple/35 animate-[spin_24s_linear_infinite] z-0" />
+        <div className="absolute -inset-1 rounded-full border border-cyber-cyan/20 animate-[spin_32s_linear_infinite_reverse] z-0" />
 
         {/* HUD system tag */}
-        <div className="absolute -bottom-3 text-[7px] font-mono text-cyber-cyan font-bold tracking-widest bg-black/90 px-2 py-0.5 border border-cyber-cyan/25 rounded-md shadow-md">
+        <div className="absolute -bottom-4 text-[7px] font-mono text-cyber-cyan font-bold tracking-widest bg-black/95 px-2.5 py-0.5 border border-cyber-cyan/30 rounded-md shadow-[0_0_10px_rgba(0,240,255,0.25)] z-20">
           SYS_ID: SANJAI_PK
+        </div>
+
+        {/* Pop-out Dynamic HUD Diagnostic panel */}
+        <div 
+          className="absolute left-[110%] top-2 w-32 p-2.5 bg-black/90 border border-cyber-cyan/30 rounded-lg text-[7px] font-mono text-cyber-cyan space-y-1.5 backdrop-blur-md shadow-[0_0_20px_rgba(0,240,255,0.15)] z-30 transition-all duration-300 pointer-events-none"
+          style={{
+            opacity: isHovered ? 1 : 0,
+            transform: isHovered ? 'translateX(0) scale(1)' : 'translateX(-10px) scale(0.95)',
+          }}
+        >
+          <div className="text-white font-bold border-b border-cyber-cyan/25 pb-0.5 uppercase tracking-widest flex items-center justify-between">
+            <span>AI_CORE</span>
+            <span className="text-cyber-green animate-pulse">● ACTIVE</span>
+          </div>
+          <div className="flex justify-between"><span>NEURAL_LOAD:</span><span className="text-white">{hudStats.load}</span></div>
+          <div className="flex justify-between"><span>CORE_TEMP:</span><span className="text-white">{hudStats.temp}</span></div>
+          <div className="flex justify-between"><span>CLOCK_SPEED:</span><span className="text-white">{hudStats.speed}</span></div>
+          <div className="text-cyber-green text-[6.5px] font-bold border-t border-white/5 pt-1 mt-1 flex items-center gap-1">
+            <span>✓ IDENTITY VERIFIED</span>
+          </div>
         </div>
       </div>
 
-      {/* Outer ambient glow backing rings (z-0) */}
+      {/* Ambient glow backing rings */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
         <div 
-          className="w-[240px] h-[240px] md:w-[350px] md:h-[350px] rounded-full border border-cyber-cyan/10 animate-pulse"
-          style={{ boxShadow: '0 0 60px 10px rgba(0,240,255,0.03)' }} 
+          className="rounded-full border transition-all duration-500"
+          style={{ 
+            width: isMobile ? '200px' : '320px',
+            height: isMobile ? '200px' : '320px',
+            borderColor: isHovered ? 'rgba(0,240,255,0.18)' : 'rgba(0,240,255,0.06)',
+            boxShadow: isHovered 
+              ? '0 0 80px 20px rgba(0,240,255,0.07)' 
+              : '0 0 60px 10px rgba(0,240,255,0.03)' 
+          }} 
         />
       </div>
 
