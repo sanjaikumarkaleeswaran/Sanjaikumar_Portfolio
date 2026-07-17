@@ -438,9 +438,9 @@ ${p.architecture.map(n => `- **${n.name}**: ${n.performance}`).join('\n')}`
       </div>
 
       {/* Premium Cards Grid */}
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredProjects.length === 0 ? (
-          <div className="py-16 text-center border border-dashed border-white/10 rounded-xl font-mono text-[10px] text-slate-500">
+          <div className="py-16 text-center border border-dashed border-white/10 rounded-xl font-mono text-[10px] text-slate-500 md:col-span-2">
             NO COMPILED PROJECTS MATCH THE ACTIVE SELECTIONS
           </div>
         ) : (
@@ -594,38 +594,49 @@ ${p.architecture.map(n => `- **${n.name}**: ${n.performance}`).join('\n')}`
                   >
                     <div className="p-4 rounded-xl border border-white/5 bg-slate-950/80 space-y-4">
                       {isMobile ? (
-                        <div className="space-y-3.5">
-                          <div className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// ARCHITECTURE ACCORDION DETAILS</div>
-                          <div className="space-y-2.5">
+                        <div className="space-y-4">
+                          <div className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">// ARCHITECTURE COMPONENTS</div>
+                          
+                          {/* Mini Grid representation for mobile */}
+                          <div className="grid grid-cols-2 gap-2">
                             {selectedProject.architecture.map((node) => {
-                              const isNodeExpanded = selectedNode?.id === node.id;
+                              const isNodeSelected = selectedNode?.id === node.id;
                               return (
-                                <div key={node.id} className="border border-white/5 rounded-lg overflow-hidden bg-black/40">
-                                  <button
-                                    onClick={() => {
-                                      playAudioCue('click');
-                                      setSelectedNode(isNodeExpanded ? null : node);
-                                    }}
-                                    className="w-full p-3.5 text-left font-bold text-[10px] text-slate-300 hover:text-white flex items-center justify-between bg-slate-900/30 cursor-pointer"
-                                  >
-                                    <span className="font-mono">{node.role.toUpperCase()}: {node.name}</span>
-                                    <span className="text-cyber-cyan font-bold font-mono">{isNodeExpanded ? '[-]' : '[+]'}</span>
-                                  </button>
-                                  {isNodeExpanded && (
-                                    <div className="p-3.5 text-[9.5px] leading-relaxed text-slate-400 border-t border-white/5 space-y-2 bg-slate-950/70">
-                                      <p><strong className="text-slate-200">Purpose:</strong> {node.purpose}</p>
-                                      <p><strong className="text-slate-200">Tech Stack:</strong> <code className="text-cyber-cyan bg-white/5 px-1 py-0.5 rounded">{node.tech}</code></p>
-                                      <p><strong className="text-slate-200">Rationale:</strong> {node.reason}</p>
-                                      <p><strong className="text-cyber-magenta font-semibold">Trade-offs:</strong> {node.tradeoffs}</p>
-                                      <p><strong className="text-cyber-cyan font-semibold">Performance:</strong> {node.performance}</p>
-                                      <p><strong className="text-yellow-500 font-semibold">Security:</strong> {node.security}</p>
-                                      <p><strong className="text-cyber-green font-semibold">Scaling:</strong> {node.scale}</p>
-                                    </div>
-                                  )}
-                                </div>
+                                <button
+                                  key={node.id}
+                                  onClick={() => {
+                                    playAudioCue('click');
+                                    setSelectedNode(node);
+                                  }}
+                                  className={`p-3 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                                    isNodeSelected 
+                                      ? 'border-cyber-purple bg-cyber-purple/10 text-white shadow-[0_0_10px_rgba(157,78,221,0.2)]'
+                                      : 'border-white/5 bg-slate-900/30 text-slate-400 hover:text-slate-200'
+                                  }`}
+                                >
+                                  <span className="text-[6px] text-slate-500 uppercase tracking-wider font-mono">{node.role}</span>
+                                  <span className="font-bold text-[9px] truncate w-full font-mono">{node.name}</span>
+                                </button>
                               );
                             })}
                           </div>
+
+                          {/* Details stacked below */}
+                          {selectedNode && (
+                            <motion.div
+                              key={selectedNode.id}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="p-3.5 border border-white/5 rounded-lg bg-slate-950/70 text-[9px] leading-relaxed text-slate-300 space-y-2 text-left"
+                            >
+                              <div className="text-cyber-purple font-bold text-[8px] uppercase tracking-wider">// COMPONENT SPEC: {selectedNode.role.toUpperCase()}</div>
+                              <p><strong className="text-slate-100">Name:</strong> {selectedNode.name}</p>
+                              <p><strong className="text-slate-100">Purpose:</strong> {selectedNode.purpose}</p>
+                              <p><strong className="text-slate-100">Tech:</strong> <code className="text-cyber-cyan bg-white/5 px-1 py-0.5 rounded">{selectedNode.tech}</code></p>
+                              <p><strong className="text-cyber-magenta font-semibold">Trade-offs:</strong> {selectedNode.tradeoffs}</p>
+                              <p><strong className="text-cyber-cyan font-semibold">Performance:</strong> {selectedNode.performance}</p>
+                            </motion.div>
+                          )}
                         </div>
                       ) : (
                         <>
