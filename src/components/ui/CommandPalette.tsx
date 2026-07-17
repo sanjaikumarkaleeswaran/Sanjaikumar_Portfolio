@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X, FileCode, Activity } from 'lucide-react';
+import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X, FileCode, Activity, Globe } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
 interface CommandItem {
@@ -27,8 +27,10 @@ export const CommandPalette: React.FC<{
     isMuted,
     setIsMuted,
     addNotification,
-    theme,
-    setTheme
+    setTheme,
+    setIsTourActive,
+    setTourStep,
+    setIsTourPaused
   } = useOS();
 
   const [search, setSearch] = useState('');
@@ -178,25 +180,76 @@ export const CommandPalette: React.FC<{
       }
     },
     {
-      id: 'toggle-theme',
-      title: `Cycle System Theme (Current: ${theme.toUpperCase()})`,
-      category: 'System Config',
-      icon: <Cpu size={14} className="text-yellow-500" />,
+      id: 'guided-tour',
+      title: 'Start Recruiter Guided Tour Overview',
+      category: 'OS Utilities',
+      icon: <Globe size={14} className="text-cyber-cyan animate-pulse" />,
       action: () => {
-        const nextTheme = theme === 'cyber' ? 'obsidian' : theme === 'obsidian' ? 'matrix' : 'cyber';
-        setTheme(nextTheme);
+        setTourStep(0);
+        setIsTourPaused(false);
+        setIsTourActive(true);
+        setIsCommandPaletteOpen(false);
+        addNotification('Recruiter guided tour launched!', 'success');
+      }
+    },
+    {
+      id: 'theme-cyber',
+      title: 'Set Theme: Cyberpunk Neon OS',
+      category: 'System Theme',
+      icon: <Cpu size={14} className="text-cyber-magenta" />,
+      action: () => {
+        setTheme('cyber');
         setIsCommandPaletteOpen(false);
       }
     },
     {
-      id: 'trigger-matrix',
-      title: 'Initialize Digital Code Rain Matrix',
-      category: 'OS Utilities',
+      id: 'theme-obsidian',
+      title: 'Set Theme: Obsidian Minimal Slate',
+      category: 'System Theme',
+      icon: <Cpu size={14} className="text-slate-400" />,
+      action: () => {
+        setTheme('obsidian');
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'theme-matrix',
+      title: 'Set Theme: Digital Matrix Terminal',
+      category: 'System Theme',
       icon: <Terminal size={14} className="text-cyber-green" />,
       action: () => {
         setTheme('matrix');
         setIsCommandPaletteOpen(false);
-        addNotification('Matrix theme cascade activated', 'success');
+      }
+    },
+    {
+      id: 'theme-glass',
+      title: 'Set Theme: Translucent Glassmorphism',
+      category: 'System Theme',
+      icon: <Cpu size={14} className="text-cyber-cyan" />,
+      action: () => {
+        setTheme('glass');
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'theme-blueprint',
+      title: 'Set Theme: Developer Blueprint Grid',
+      category: 'System Theme',
+      icon: <Code size={14} className="text-blue-400" />,
+      action: () => {
+        setTheme('blueprint');
+        setIsCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'theme-recruiter',
+      title: 'Set Theme: Recruiter Executive Navy',
+      category: 'System Theme',
+      icon: <User size={14} className="text-indigo-400" />,
+      action: () => {
+        setTheme('recruiter');
+        setIsCommandPaletteOpen(false);
       }
     },
     {

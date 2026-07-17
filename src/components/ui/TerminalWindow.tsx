@@ -9,7 +9,16 @@ interface TerminalLine {
 }
 
 export const TerminalWindow: React.FC = () => {
-  const { playAudioCue, theme, setTheme, sysUptime, addNotification } = useOS();
+  const { 
+    playAudioCue, 
+    theme, 
+    setTheme, 
+    sysUptime, 
+    addNotification,
+    setIsTourActive,
+    setTourStep,
+    setIsTourPaused 
+  } = useOS();
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<TerminalLine[]>([
     { text: 'SANJAI_OS [Version 2.0.0]', type: 'system' },
@@ -25,8 +34,11 @@ export const TerminalWindow: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const rawInput = input.trim();
-    const cmd = rawInput.toLowerCase();
-    if (!cmd) return;
+    if (!rawInput) return;
+    
+    const parts = rawInput.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const arg = parts[1]?.toLowerCase();
 
     playAudioCue('return');
     const newHistory = [...history, { text: `$ ${rawInput}`, type: 'input' as const }];
@@ -46,7 +58,8 @@ export const TerminalWindow: React.FC = () => {
           { text: '  contact      - Display communication access keys', type: 'info' },
           { text: '  github       - Launch GitHub link in new viewport', type: 'info' },
           { text: '  linkedin     - Launch LinkedIn link in new viewport', type: 'info' },
-          { text: '  theme        - Toggle OS theme (cyber | obsidian | matrix)', type: 'info' },
+          { text: '  theme [name] - Set OS theme (cyber | obsidian | matrix | glass | blueprint | recruiter)', type: 'info' },
+          { text: '  tour         - Start recruiter guided tour overview', type: 'info' },
           { text: '  system       - Fetch telemetry and hardware uptime diagnostics', type: 'info' },
           { text: '  matrix       - Initialize matrix code stream', type: 'info' },
           { text: '  whoami       - Identify currently authenticated node', type: 'info' },
@@ -137,9 +150,26 @@ export const TerminalWindow: React.FC = () => {
         break;
 
       case 'theme':
-        const nextTheme = theme === 'cyber' ? 'obsidian' : theme === 'obsidian' ? 'matrix' : 'cyber';
-        setTheme(nextTheme);
-        newHistory.push({ text: `Theme successfully set to: ${nextTheme.toUpperCase()}_OS`, type: 'success' });
+        const validThemes = ['cyber', 'obsidian', 'matrix', 'minimal', 'glass', 'blueprint', 'terminal', 'recruiter'];
+        if (arg && validThemes.includes(arg)) {
+          const targetTheme = (arg === 'minimal' ? 'obsidian' : arg === 'terminal' ? 'matrix' : arg) as any;
+          setTheme(targetTheme);
+          newHistory.push({ text: `Theme successfully set to: ${arg.toUpperCase()}_OS`, type: 'success' });
+        } else {
+          const nextTheme = theme === 'cyber' ? 'obsidian' : theme === 'obsidian' ? 'matrix' : 'cyber';
+          setTheme(nextTheme);
+          newHistory.push({ text: `Theme successfully toggled to: ${nextTheme.toUpperCase()}_OS`, type: 'success' });
+        }
+        break;
+
+      case 'tour':
+      case 'guided-tour':
+        setTourStep(0);
+        setIsTourPaused(false);
+        setIsTourActive(true);
+        newHistory.push({ text: 'Establishing automated guided tour routing...', type: 'system' });
+        newHistory.push({ text: '[SUCCESS] Recruiter tour initiated. Follow the floating HUD guide.', type: 'success' });
+        addNotification('Guided tour initiated via Terminal console', 'success');
         break;
 
       case 'system':

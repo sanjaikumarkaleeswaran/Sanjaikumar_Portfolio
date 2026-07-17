@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
-export type ThemeType = 'cyber' | 'obsidian' | 'matrix';
+export type ThemeType = 'cyber' | 'obsidian' | 'matrix' | 'minimal' | 'glass' | 'blueprint' | 'terminal' | 'recruiter';
 
 export interface Notification {
   id: string;
@@ -29,6 +29,14 @@ interface OSContextProps {
   setVolume: (v: number) => void;
   hasBooted: boolean;
   setHasBooted: (b: boolean) => void;
+  
+  // Guided Tour properties
+  isTourActive: boolean;
+  setIsTourActive: (active: boolean) => void;
+  tourStep: number;
+  setTourStep: (step: number) => void;
+  isTourPaused: boolean;
+  setIsTourPaused: (paused: boolean) => void;
 }
 
 const OSContext = createContext<OSContextProps | undefined>(undefined);
@@ -50,6 +58,9 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [isRecruiterMode, setIsRecruiterModeState] = useState(false);
   const [currentChapter, setCurrentChapter] = useState('Chapter 1: Boot Sequence');
   const [hasBooted, setHasBooted] = useState(false);
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [isTourPaused, setIsTourPaused] = useState(false);
 
   // Web Audio Context Reference
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -547,7 +558,13 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         volume,
         setVolume,
         hasBooted,
-        setHasBooted
+        setHasBooted,
+        isTourActive,
+        setIsTourActive,
+        tourStep,
+        setTourStep,
+        isTourPaused,
+        setIsTourPaused
       }}
     >
       {children}

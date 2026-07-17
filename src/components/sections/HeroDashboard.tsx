@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, Cpu, Globe, Clock, Zap, FileText, UserCheck, MapPin, Award, BookOpen, MessageSquare, ArrowDown } from 'lucide-react';
+import { Terminal, Cpu, Globe, Clock, FileText, UserCheck, MapPin, Award, BookOpen, MessageSquare, ArrowDown } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
 // Lazy-load the heavy 3D hologram only when hero is visible
@@ -11,12 +11,16 @@ export const HeroDashboard: React.FC<{
   setActiveTab: (tab: any) => void;
   setIsAICopilotOpen: (open: boolean) => void;
 }> = (props) => {
-  const { setIsTerminalOpen, setActiveTab, setIsAICopilotOpen } = props;
+  const { setIsTerminalOpen, setActiveTab } = props;
   const { 
     playAudioCue, 
     isRecruiterMode, 
     setIsRecruiterMode,
-    addNotification
+    addNotification,
+    isTourActive,
+    setIsTourActive,
+    setTourStep,
+    setIsTourPaused
   } = useOS();
 
   const [headlineText, setHeadlineText] = useState('');
@@ -291,12 +295,19 @@ export const HeroDashboard: React.FC<{
             <button
               onClick={() => {
                 playAudioCue('click');
-                setIsAICopilotOpen(true);
+                setTourStep(0);
+                setIsTourPaused(false);
+                setIsTourActive(true);
+                addNotification('Guided tour initiated. Welcome!', 'success');
               }}
-              className="px-3 py-1.5 border border-white/10 hover:border-cyber-magenta bg-white/5 text-slate-400 hover:text-white rounded-lg flex items-center gap-1.5 cursor-pointer transition-all"
+              className={`px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                isTourActive 
+                  ? 'border-cyber-cyan bg-cyber-cyan/20 text-white animate-pulse' 
+                  : 'border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-slate-400 hover:text-white'
+              }`}
             >
-              <Zap size={12} className="text-cyber-magenta" />
-              <span>ASK AI</span>
+              <Globe size={12} className={isTourActive ? 'animate-spin text-cyber-cyan' : 'text-cyber-cyan'} />
+              <span>START TOUR</span>
             </button>
           </div>
         </motion.div>

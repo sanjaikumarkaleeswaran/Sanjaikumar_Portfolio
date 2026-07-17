@@ -14,7 +14,7 @@
 
 @layer base {
   html, body {
-    background-color: #030014;
+    background-color: var(--color-cyber-bg);
     color: #e2e8f0;
     font-family: var(--font-sans);
     margin: 0;
@@ -22,6 +22,7 @@
     width: 100%;
     height: 100%;
     overflow-x: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 }
 
@@ -112,6 +113,64 @@ h1, h2, h3, h4, h5, h6 {
   0% { top: 0%; opacity: 0.3; }
   50% { top: 100%; opacity: 0.9; }
   100% { top: 0%; opacity: 0.3; }
+}
+
+/* Theme engine overrides */
+.theme-cyber {
+  --color-cyber-bg: #030014;
+  --color-cyber-card: rgba(10, 10, 25, 0.6);
+  --color-cyber-cyan: #00f0ff;
+  --color-cyber-magenta: #ff007f;
+  --color-cyber-purple: #9d4edd;
+  --color-cyber-green: #39ff14;
+}
+
+.theme-obsidian, .theme-minimal {
+  --color-cyber-bg: #080808;
+  --color-cyber-card: rgba(20, 20, 20, 0.85);
+  --color-cyber-cyan: #ffffff;
+  --color-cyber-magenta: #444444;
+  --color-cyber-purple: #666666;
+  --color-cyber-green: #aaaaaa;
+}
+
+.theme-matrix, .theme-terminal {
+  --color-cyber-bg: #000000;
+  --color-cyber-card: rgba(0, 8, 0, 0.9);
+  --color-cyber-cyan: #39ff14;
+  --color-cyber-magenta: #00ff00;
+  --color-cyber-purple: #003b00;
+  --color-cyber-green: #39ff14;
+}
+
+.theme-glass {
+  --color-cyber-bg: #0d121c;
+  --color-cyber-card: rgba(255, 255, 255, 0.03);
+  --color-cyber-cyan: #38bdf8;
+  --color-cyber-magenta: #f43f5e;
+  --color-cyber-purple: #818cf8;
+  --color-cyber-green: #34d399;
+  backdrop-filter: blur(12px);
+}
+
+.theme-blueprint {
+  --color-cyber-bg: #0b1a30;
+  --color-cyber-card: rgba(14, 38, 74, 0.6);
+  --color-cyber-cyan: #60a5fa;
+  --color-cyber-magenta: #fb923c;
+  --color-cyber-purple: #93c5fd;
+  --color-cyber-green: #4ade80;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.theme-recruiter {
+  --color-cyber-bg: #0f172a;
+  --color-cyber-card: rgba(30, 41, 59, 0.7);
+  --color-cyber-cyan: #38bdf8;
+  --color-cyber-magenta: #f43f5e;
+  --color-cyber-purple: #6366f1;
+  --color-cyber-green: #10b981;
 }
 
 
