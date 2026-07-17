@@ -261,7 +261,7 @@ export const ContactHub: React.FC = () => {
               <span>GitHub</span>
             </a>
             <a
-              href="https://linkedin.com/in/sanjaikumarkaleeswaran"
+              href="https://www.linkedin.com/in/sanjaikumar-kaleeswaran/"
               target="_blank"
               rel="noreferrer"
               onClick={() => playAudioCue('click')}
