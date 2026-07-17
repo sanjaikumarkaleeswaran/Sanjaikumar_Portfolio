@@ -210,7 +210,7 @@ function NeuralSphere({ scroll, pulseIntensity, isMobile, mousePos }: { scroll: 
   const particleCount = useMemo(() => (isMobile ? 800 : 3000), [isMobile]);
 
   const positions = useMemo(() => {
-    const count = 3000;
+    const count = isMobile ? 800 : 3000;
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       const phi   = Math.acos(1 - (2 * (i + 0.5)) / count);
@@ -220,7 +220,7 @@ function NeuralSphere({ scroll, pulseIntensity, isMobile, mousePos }: { scroll: 
       arr[i * 3 + 2] = Math.sin(phi) * Math.sin(theta);
     }
     return arr;
-  }, []);
+  }, [isMobile]);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -648,12 +648,11 @@ export const HologramCore: React.FC = () => {
       className="w-full h-full min-h-[300px] md:min-h-[420px] relative flex items-center justify-center select-none cursor-crosshair"
     >
       
-      {/* 3D Neural Canvas layer (z-10) */}
       <div className="absolute inset-0 z-10">
         <Canvas
           camera={{ position: [0, 0, 5.0], fov: 42 }}
           gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
-          dpr={[1, 1.2]}
+          dpr={isMobile ? 1.0 : [1, 1.2]}
           frameloop={isVisible ? 'always' : 'never'}
         >
           <AICore pulseIntensity={pulseIntensity} isMobile={isMobile} mousePos={mousePos} />
