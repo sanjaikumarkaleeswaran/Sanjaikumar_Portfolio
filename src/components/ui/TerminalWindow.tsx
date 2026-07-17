@@ -31,17 +31,16 @@ export const TerminalWindow: React.FC = () => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const rawInput = input.trim();
-    if (!rawInput) return;
+  const executeCommand = (rawInput: string) => {
+    const trimmed = rawInput.trim();
+    if (!trimmed) return;
     
-    const parts = rawInput.split(/\s+/);
+    const parts = trimmed.split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const arg = parts[1]?.toLowerCase();
 
     playAudioCue('return');
-    const newHistory = [...history, { text: `$ ${rawInput}`, type: 'input' as const }];
+    const newHistory = [...history, { text: `$ ${trimmed}`, type: 'input' as const }];
     let hasError = false;
 
     switch (cmd) {
@@ -208,7 +207,7 @@ export const TerminalWindow: React.FC = () => {
 
       default:
         hasError = true;
-        newHistory.push({ text: `Mandate not recognized: "${rawInput}". Type "help" for options.`, type: 'error' });
+        newHistory.push({ text: `Mandate not recognized: "${trimmed}". Type "help" for options.`, type: 'error' });
     }
 
     if (hasError) {
@@ -217,8 +216,40 @@ export const TerminalWindow: React.FC = () => {
       playAudioCue('success');
     }
 
-    setHistory(newHistory);
+    // Limit log size on mobile for memory footprint safety
+    const limit = window.innerWidth < 768 ? 30 : 120;
+    if (newHistory.length > limit) {
+      setHistory(newHistory.slice(newHistory.length - limit));
+    } else {
+      setHistory(newHistory);
+    }
     setInput('');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCommand(input);
+  };
+
+  // Touch device keyboard helper action
+  const handleVirtualKey = (key: string) => {
+    playAudioCue('tap');
+    if (key === 'TAB') {
+      const commands = ['help', 'about', 'cat profile', 'skills', 'projects', 'experience', 'education', 'resume', 'contact', 'github', 'linkedin', 'theme', 'tour', 'system', 'matrix', 'whoami', 'coffee', 'clear'];
+      const match = commands.find(c => c.startsWith(input.toLowerCase()));
+      if (match) {
+        setInput(match);
+      }
+    } else if (key === 'Ctrl+C') {
+      setInput('');
+      const cancelHistory = [...history, { text: '$ ' + input + ' ^C', type: 'input' as const }];
+      setHistory(cancelHistory.slice(-100));
+    } else if (key === 'clear') {
+      setHistory([]);
+      setInput('');
+    } else {
+      executeCommand(key);
+    }
   };
 
   return (
@@ -242,7 +273,55 @@ export const TerminalWindow: React.FC = () => {
         <div ref={consoleEndRef} />
       </div>
 
-      {/* Terminal Input */}
+      {/* Virtual Command Helper Row */}
+      <div className="flex flex-wrap gap-1 px-3 py-1.5 border-t border-white/5 bg-slate-950/90 select-none">
+        <button 
+          type="button" 
+          onClick={() => handleVirtualKey('TAB')}
+          className="px-2 py-0.5 rounded border border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-[9px] font-mono text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+          title="Autocomplete command matching input prefix"
+        >
+          TAB
+        </button>
+        <button 
+          type="button" 
+          onClick={() => handleVirtualKey('Ctrl+C')}
+          className="px-2 py-0.5 rounded border border-white/10 hover:border-cyber-magenta/50 bg-white/5 text-[9px] font-mono text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+          title="Cancel current entry"
+        >
+          Ctrl+C
+        </button>
+        <button 
+          type="button" 
+          onClick={() => handleVirtualKey('help')}
+          className="px-2 py-0.5 rounded border border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-[9px] font-mono text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+        >
+          help
+        </button>
+        <button 
+          type="button" 
+          onClick={() => handleVirtualKey('tour')}
+          className="px-2 py-0.5 rounded border border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-[9px] font-mono text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+        >
+          tour
+        </button>
+        <button 
+          type="button" 
+          onClick={() => handleVirtualKey('theme')}
+          className="px-2 py-0.5 rounded border border-white/10 hover:border-cyber-cyan/50 bg-white/5 text-[9px] font-mono text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+        >
+          theme
+        </button>
+        <button 
+          type="button" 
+          onClick={() => handleVirtualKey('clear')}
+          className="px-2 py-0.5 rounded border border-white/10 hover:border-cyber-magenta/50 bg-white/5 text-[9px] font-mono text-slate-400 hover:text-white cursor-pointer active:scale-95 transition-transform"
+        >
+          clear
+        </button>
+      </div>
+
+      {/* Terminal Input Form */}
       <form onSubmit={handleSubmit} className="p-3 border-t border-white/5 bg-slate-950/95 flex items-center">
         <ChevronRight size={14} className="text-cyber-cyan mr-1.5 animate-pulse" />
         <span className="text-cyber-cyan mr-2 font-bold">$</span>
