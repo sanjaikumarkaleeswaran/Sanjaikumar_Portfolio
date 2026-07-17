@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { X, Minus } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
@@ -27,12 +26,8 @@ export const OSWindow: React.FC<OSWindowProps> = ({
   if (!isOpen) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: 15, filter: 'blur(8px)' }}
-      animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-      exit={{ opacity: 0, scale: 0.95, y: 15, filter: 'blur(8px)' }}
-      transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-      className={`w-full ${widthClass} ${heightClass} border border-white/10 rounded-2xl bg-black/75 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-30`}
+    <div
+      className={`w-full ${widthClass} ${heightClass} border border-white/10 rounded-2xl bg-black/75 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-30 animate-[windowOpen_0.4s_cubic-bezier(0.34,1.56,0.64,1)_both]`}
     >
       {/* OS Window Title Bar */}
       <div 
@@ -77,6 +72,6 @@ export const OSWindow: React.FC<OSWindowProps> = ({
       <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scroll">
         {children}
       </div>
-    </motion.div>
+    </div>
   );
 };

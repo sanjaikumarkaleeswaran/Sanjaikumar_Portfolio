@@ -1,23 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Folder, FolderOpen, FileCode, ChevronRight, ChevronDown, Cpu, Shield, AlertTriangle } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
-import { PROJECT_REPOS } from '../../data/projectFiles';
-import type { ProjectRepo, ProjectFile } from '../../data/projectFiles';
+import { getAllProjects } from '../../data/projects';
+import type { ProjectFile } from '../../types/project';
+
+interface ProjectRepo {
+  id: string;
+  name: string;
+  description: string;
+  files: ProjectFile[];
+}
 
 export const ProjectCodeExplorer: React.FC = () => {
   const { playAudioCue } = useOS();
-  const [selectedRepo, setSelectedRepo] = useState<ProjectRepo>(PROJECT_REPOS[0]);
-  const [selectedFile, setSelectedFile] = useState<ProjectFile>(PROJECT_REPOS[0].files[0]);
+  const projects = useMemo(() => getAllProjects(), []);
+  
+  // Construct repo lists dynamically from CMS data
+  const repos = useMemo<ProjectRepo[]>(() => {
+    return projects
+      .filter(p => p.files && p.files.length > 0)
+      .map(p => ({
+        id: p.id,
+        name: p.title,
+        description: p.description,
+        files: p.files
+      }));
+  }, [projects]);
+
+  const [selectedRepo, setSelectedRepo] = useState<ProjectRepo | null>(null);
+  const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
   const [isFolderOpen, setIsFolderOpen] = useState(true);
+
+  // Sync initial selection
+  useEffect(() => {
+    if (repos.length > 0) {
+      setSelectedRepo(repos[0]);
+      setSelectedFile(repos[0].files[0]);
+    }
+  }, [repos]);
 
   // Sync selected file when repository tab changes
   useEffect(() => {
-    setSelectedFile(selectedRepo.files[0]);
+    if (selectedRepo && selectedRepo.files.length > 0) {
+      setSelectedFile(selectedRepo.files[0]);
+    }
   }, [selectedRepo]);
 
   const handleSelectRepo = (repoId: string) => {
     playAudioCue('click');
-    const repo = PROJECT_REPOS.find(r => r.id === repoId);
+    const repo = repos.find(r => r.id === repoId);
     if (repo) setSelectedRepo(repo);
   };
 
@@ -27,13 +58,21 @@ export const ProjectCodeExplorer: React.FC = () => {
     setSelectedFile(file);
   };
 
+  if (!selectedRepo || !selectedFile) {
+    return (
+      <div className="flex items-center justify-center h-[400px] border border-white/5 rounded-xl font-mono bg-slate-950 text-slate-500 text-xs">
+        LOADING REPOSITORY INDEX...
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-[400px] border border-white/5 rounded-xl overflow-hidden font-mono bg-slate-950 text-slate-300">
       
       {/* VS Code header toolbar tabs */}
       <div className="flex items-center justify-between border-b border-white/5 bg-slate-900/40 select-none">
         <div className="flex items-center">
-          {PROJECT_REPOS.map((repo) => {
+          {repos.map((repo) => {
             const isTabActive = selectedRepo.id === repo.id;
             return (
               <button

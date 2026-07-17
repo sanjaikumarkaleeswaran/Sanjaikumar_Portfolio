@@ -133,7 +133,7 @@ export const TerminalWindow: React.FC = () => {
 
       case 'linkedin':
         newHistory.push({ text: 'Redirecting port to LinkedIn interface...', type: 'success' });
-        window.open('https://linkedin.com/in/sanjaikumarkaleeswaran', '_blank');
+        window.open('https://www.linkedin.com/in/sanjaikumar-kaleeswaran/', '_blank');
         break;
 
       case 'theme':

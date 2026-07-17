@@ -55,3 +55,63 @@ html.custom-cursor-active * {
   background-size: 100% 3px, 3px 100%;
 }
 
+/* CSS-only animation replacements for framer-motion */
+@keyframes dockSlideIn {
+  from { transform: translateX(-50%) translateY(50px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+@keyframes windowOpen {
+  from { opacity: 0; transform: scale(0.95) translateY(15px); filter: blur(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes paletteSlideIn {
+  from { opacity: 0; transform: scale(0.97) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes bootGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes bootContainerIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes bootLogIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes notificationSlideIn {
+  from { opacity: 0; transform: translateX(50px) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes workspaceFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Global Headings Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Orbitron", sans-serif !important;
+  letter-spacing: 0.05em;
+}
+
+/* Hologram Profile scanner animation */
+@keyframes scannerSweep {
+  0% { top: 0%; opacity: 0.3; }
+  50% { top: 100%; opacity: 0.9; }
+  100% { top: 0%; opacity: 0.3; }
+}
+
+

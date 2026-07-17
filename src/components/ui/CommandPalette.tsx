@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { Search, Terminal, Cpu, User, Code, Folder, BookOpen, Mail, Volume2, X, FileCode, Activity } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
 
@@ -239,7 +238,7 @@ export const CommandPalette: React.FC<{
       category: 'Social Routing',
       icon: <User size={14} className="text-cyber-purple" />,
       action: () => {
-        window.open('https://linkedin.com/in/sanjaikumarkaleeswaran', '_blank');
+        window.open('https://www.linkedin.com/in/sanjaikumar-kaleeswaran/', '_blank');
         setIsCommandPaletteOpen(false);
       }
     }
@@ -271,22 +270,16 @@ export const CommandPalette: React.FC<{
   if (!isCommandPaletteOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-[fadeIn_0.15s_ease_both]">
       {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+      <div
         onClick={() => setIsCommandPaletteOpen(false)}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
 
       {/* Palette Container */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97, y: -10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.97, y: -10 }}
-        className="relative w-full max-w-[500px] border border-white/10 rounded-2xl bg-slate-950/90 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col font-mono"
+      <div
+        className="relative w-full max-w-[500px] border border-white/10 rounded-2xl bg-slate-950/90 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col font-mono animate-[paletteSlideIn_0.2s_cubic-bezier(0.34,1.56,0.64,1)_both]"
         onKeyDown={handleListKeyDown}
       >
         {/* Search Input Bar */}
@@ -351,7 +344,7 @@ export const CommandPalette: React.FC<{
           <span>⏎ to confirm</span>
           <span>esc to close</span>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

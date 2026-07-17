@@ -56,6 +56,21 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const ambientOscRef = useRef<OscillatorNode | null>(null);
   const ambientGainRef = useRef<GainNode | null>(null);
 
+  // Defer AudioContext creation until first user interaction (click/tap)
+  useEffect(() => {
+    const initOnInteraction = () => {
+      initAudio();
+      window.removeEventListener('pointerdown', initOnInteraction);
+      window.removeEventListener('keydown', initOnInteraction);
+    };
+    window.addEventListener('pointerdown', initOnInteraction, { once: true });
+    window.addEventListener('keydown', initOnInteraction, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', initOnInteraction);
+      window.removeEventListener('keydown', initOnInteraction);
+    };
+  }, []);
+
   // Global keyboard shortcut 'M' listener to toggle mute state
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {

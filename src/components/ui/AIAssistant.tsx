@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Sparkles, User, RefreshCw, Command } from 'lucide-react';
 import { useOS } from '../../context/OSContext';
-import { searchKnowledge } from '../../data/knowledgeBase';
 
 interface Message {
   id: string;
@@ -24,6 +23,16 @@ export const AIAssistant: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Lazy-loaded AI search reference (only loaded on first query)
+  const aiEngineRef = useRef<typeof import('../../utils/aiEngine') | null>(null);
+
+  const getCompileAnswerFn = useCallback(async () => {
+    if (!aiEngineRef.current) {
+      aiEngineRef.current = await import('../../utils/aiEngine');
+    }
+    return aiEngineRef.current.compileAnswer;
+  }, []);
+
   // Wake up chime on first render
   useEffect(() => {
     playAudioCue('wake');
@@ -43,7 +52,7 @@ export const AIAssistant: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSend = (textToSend: string) => {
+  const handleSend = async (textToSend: string) => {
     if (!textToSend.trim() || isTyping) return;
 
     playAudioCue('click');
@@ -62,7 +71,7 @@ export const AIAssistant: React.FC = () => {
     setIsTyping(true);
 
     // AI typing & answering simulation
-    setTimeout(() => {
+    setTimeout(async () => {
       let replyText = "";
       const query = textToSend.toLowerCase();
 
@@ -84,15 +93,13 @@ export const AIAssistant: React.FC = () => {
         addNotification('Returning to Central OS Dashboard', 'info');
         replyText = "Command acknowledged. Minimizing active windows and returning to the **Central OS Dashboard**.";
       } else {
-        // Run Local RAG Similarity Search
-        const searchMatches = searchKnowledge(textToSend);
-        
-        if (searchMatches.length > 0) {
-          const topMatch = searchMatches[0];
-          replyText = `🔍 [LOCAL RAG NODE: MATCHED ${topMatch.doc.title} (SCORE: ${topMatch.score.toFixed(2)})]\n\n${topMatch.doc.content}`;
-        } else {
-          // Safeguard fallback to prevent hallucination
-          replyText = `⚠️ [SYSTEM SAFEGUARD ALERT: OUTSIDE VERIFIED KNOWLEDGEBASE]\n\nNo matching documents found in local knowledge archives. To prevent hallucinations and safeguard recruitment integrity, the AI Core is restricted to local credentials.\n\nTry asking:\n• "Explain Mindwave / Nova / Aquarium"\n• "Which projects use Docker / MongoDB / Python?"\n• "Tell me about your education / college credentials"`;
+        // Lazy-load and run Local Vector Similarity Search
+        try {
+          const compileAnswer = await getCompileAnswerFn();
+          replyText = compileAnswer(textToSend);
+        } catch (err) {
+          console.error(err);
+          replyText = "⚠️ [AI SYSTEM ERROR] Failed to initialize Vector Similarity Search Engine.";
         }
       }
 

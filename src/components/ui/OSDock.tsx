@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { 
   Home, User, Code, Folder, BookOpen, Mail, Terminal, Sparkles, BarChart2
 } from 'lucide-react';
@@ -122,11 +121,8 @@ export const OSDock: React.FC<{
   ];
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
-      <motion.div 
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 260, delay: 0.5 }}
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto animate-[dockSlideIn_0.6s_cubic-bezier(0.34,1.56,0.64,1)_0.5s_both]">
+      <div 
         className="flex items-center gap-3 px-6 py-3 border border-white/10 rounded-full bg-black/85 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1)]"
         onMouseEnter={() => playAudioCue('hover')}
       >
@@ -138,16 +134,14 @@ export const OSDock: React.FC<{
                 <div className="w-[1px] h-6 bg-white/10 mx-1" />
               )}
               
-              <motion.button
+              <button
                 onClick={(e) => {
                   const pan = (e.clientX / window.innerWidth) * 2 - 1;
                   playAudioCue('click', pan);
                   item.action();
                 }}
                 onMouseEnter={() => playAudioCue('dockHover')}
-                whileHover={{ y: -8, scale: 1.15 }}
-                whileTap={{ scale: 0.95 }}
-                className={`relative p-3 rounded-full border transition-all cursor-pointer group flex items-center justify-center ${
+                className={`relative p-3 rounded-full border transition-all duration-200 ease-out cursor-pointer group flex items-center justify-center hover:-translate-y-2 hover:scale-110 active:scale-95 ${
                   item.isActive 
                     ? 'bg-cyber-cyan/20 border-cyber-cyan/50 text-cyber-cyan shadow-[0_0_15px_rgba(0,240,255,0.25)]' 
                     : 'bg-white/5 border-white/5 text-slate-400 hover:text-slate-100 hover:border-white/20'
@@ -165,11 +159,11 @@ export const OSDock: React.FC<{
                 {item.isActive && (
                   <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-cyber-cyan shadow-[0_0_4px_#00f0ff]" />
                 )}
-              </motion.button>
+              </button>
             </React.Fragment>
           );
         })}
-      </motion.div>
+      </div>
     </div>
   );
 };
