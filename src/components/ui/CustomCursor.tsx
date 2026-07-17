@@ -5,6 +5,7 @@ export const CustomCursor: React.FC = () => {
   const ringRef = useRef<HTMLDivElement>(null);
   
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export const CustomCursor: React.FC = () => {
     let ringY = 0;
 
     const onMouseMove = (e: MouseEvent) => {
+      setIsHidden(false); // Safeguard: if mouse is moving, it is active & inside viewport
       mouseX = e.clientX;
       mouseY = e.clientY;
       
@@ -28,7 +30,6 @@ export const CustomCursor: React.FC = () => {
 
     // Smoothly interpolate the outer ring (creates beautiful lag/fluid trail)
     const updateRingPosition = () => {
-      // Linear interpolation: ring position approaches mouse position with a delay
       const ease = 0.12; 
       ringX += (mouseX - ringX) * ease;
       ringY += (mouseY - ringY) * ease;
@@ -42,23 +43,31 @@ export const CustomCursor: React.FC = () => {
     // Mouse boundaries check
     const onMouseLeave = () => setIsHidden(true);
     const onMouseEnter = () => setIsHidden(false);
+    
+    // Press state listeners
+    const onMouseDown = () => setIsPressed(true);
+    const onMouseUp = () => setIsPressed(false);
 
-    // Hover state over interactive nodes
-    const addHoverListeners = () => {
-      const interactives = document.querySelectorAll('button, a, input, select, form, [role="button"], canvas');
-      interactives.forEach((el) => {
-        el.addEventListener('mouseenter', () => setIsHovered(true));
-        el.addEventListener('mouseleave', () => setIsHovered(false));
-      });
+    // Window focus/blur listeners
+    const onWindowBlur = () => setIsHidden(true);
+    const onWindowFocus = () => setIsHidden(false);
+
+    // Event delegation for hover state over interactive nodes
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const interactive = target.closest('button, a, input, select, textarea, form, [role="button"], canvas, [data-interactive]');
+      setIsHovered(!!interactive);
     };
 
     window.addEventListener('mousemove', onMouseMove);
-    document.body.addEventListener('mouseleave', onMouseLeave);
-    document.body.addEventListener('mouseenter', onMouseEnter);
-    
-    // Add hover listener loop (and periodic refresh for dynamic items)
-    addHoverListeners();
-    const interval = setInterval(addHoverListeners, 2000);
+    document.addEventListener('mouseleave', onMouseLeave);
+    document.addEventListener('mouseenter', onMouseEnter);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('blur', onWindowBlur);
+    window.addEventListener('focus', onWindowFocus);
+    window.addEventListener('mouseover', onMouseOver);
 
     // Global CSS flag to hide normal cursor on desktop
     document.documentElement.classList.add('custom-cursor-active');
@@ -66,29 +75,37 @@ export const CustomCursor: React.FC = () => {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', onMouseMove);
-      document.body.removeEventListener('mouseleave', onMouseLeave);
-      document.body.removeEventListener('mouseenter', onMouseEnter);
-      clearInterval(interval);
+      document.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('mouseenter', onMouseEnter);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('blur', onWindowBlur);
+      window.removeEventListener('focus', onWindowFocus);
+      window.removeEventListener('mouseover', onMouseOver);
       document.documentElement.classList.remove('custom-cursor-active');
     };
   }, []);
 
-  if (isHidden) return null;
-
   return (
-    <div className="hidden lg:block pointer-events-none fixed inset-0 z-[99999]">
+    <div 
+      className={`hidden lg:block pointer-events-none fixed inset-0 z-[99999] transition-opacity duration-300 ${
+        isHidden ? 'opacity-0' : 'opacity-100'
+      }`}
+    >
       {/* Inner precise dot */}
       <div
         ref={dotRef}
-        className={`fixed top-0 left-0 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyber-cyan transition-all duration-150 ease-out shadow-[0_0_10px_rgba(0,240,255,0.8)]`}
+        className="fixed top-0 left-0 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyber-cyan transition-all duration-150 ease-out shadow-[0_0_10px_rgba(0,240,255,0.8)]"
       />
       {/* Outer easing ring */}
       <div
         ref={ringRef}
         className={`fixed top-0 left-0 rounded-full border border-cyber-cyan/35 pointer-events-none transition-all duration-300 ease-out ${
-          isHovered 
-            ? 'w-10 h-10 bg-cyber-cyan/5 border-cyber-cyan shadow-[0_0_15px_rgba(0,240,255,0.35)]' 
-            : 'w-6 h-6 bg-transparent'
+          isPressed 
+            ? 'w-4 h-4 bg-cyber-cyan/30 border-cyber-cyan shadow-[0_0_10px_rgba(0,240,255,0.6)]'
+            : isHovered 
+              ? 'w-10 h-10 bg-cyber-cyan/5 border-cyber-cyan shadow-[0_0_15px_rgba(0,240,255,0.35)]' 
+              : 'w-6 h-6 bg-transparent'
         }`}
       />
     </div>
