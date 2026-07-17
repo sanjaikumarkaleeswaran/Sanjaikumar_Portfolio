@@ -27,7 +27,7 @@ export const OSWindow: React.FC<OSWindowProps> = ({
 
   return (
     <div
-      className={`w-full ${widthClass} ${heightClass} border border-white/10 rounded-2xl bg-black/75 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-30 animate-[windowOpen_0.4s_cubic-bezier(0.34,1.56,0.64,1)_both]`}
+      className={`w-full max-w-full md:max-w-none md:${widthClass} h-full md:${heightClass} fixed inset-0 md:relative md:inset-auto border-0 md:border border-white/10 rounded-none md:rounded-2xl bg-slate-950/95 md:bg-black/75 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-[100] md:z-30 animate-[windowOpen_0.4s_cubic-bezier(0.34,1.56,0.64,1)_both]`}
     >
       {/* OS Window Title Bar */}
       <div 
