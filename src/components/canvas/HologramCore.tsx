@@ -544,11 +544,20 @@ export const HologramCore: React.FC = () => {
         
         {/* Futuristic circular scan shell */}
         <div className="relative w-24 h-24 md:w-30 md:h-30 rounded-full overflow-hidden border border-cyber-cyan/40 bg-black/60 shadow-[0_0_20px_rgba(0,240,255,0.25)]">
-          <img 
-            src="/sanjai_hologram.png" 
-            alt="Sanjai P K Hologram Scan" 
-            className="w-full h-full object-cover filter contrast-125 saturate-150 mix-blend-screen opacity-85 select-none" 
-          />
+          {/* Circular scanner reticle crosshairs */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Center target dot */}
+            <div className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping" />
+            <div className="w-1 h-1 rounded-full bg-cyber-cyan" />
+            
+            {/* Crosshair lines */}
+            <div className="absolute w-8 h-[0.5px] bg-cyber-cyan/30" />
+            <div className="absolute h-8 w-[0.5px] bg-cyber-cyan/30" />
+            
+            {/* Secondary rings */}
+            <div className="absolute w-12 h-12 rounded-full border border-dashed border-cyber-cyan/25 animate-[spin_10s_linear_infinite]" />
+            <div className="absolute w-16 h-16 rounded-full border border-cyber-cyan/15 animate-[pulse_2s_infinite]" />
+          </div>
           {/* Scanning sweep line */}
           <div className="absolute inset-x-0 h-[2px] bg-cyber-cyan/90 shadow-[0_0_8px_rgba(0,240,255,0.9)] animate-[scannerSweep_3s_infinite_linear]" />
           {/* Radar HUD circular line */}
