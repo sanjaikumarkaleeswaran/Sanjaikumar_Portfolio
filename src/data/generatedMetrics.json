@@ -1,9 +1,9 @@
 {
-  "totalLines": 9623,
-  "tsFilesCount": 36,
-  "componentsCount": 21,
+  "totalLines": 9794,
+  "tsFilesCount": 39,
+  "componentsCount": 24,
   "hooksCount": 3,
   "dependenciesCount": 21,
-  "bundleSizeKb": "1495 KB",
-  "generatedAt": "2026-07-17T08:35:52.320Z"
+  "bundleSizeKb": "1512 KB",
+  "generatedAt": "2026-07-17T09:16:39.209Z"
 }
