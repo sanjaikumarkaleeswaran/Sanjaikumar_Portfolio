@@ -33,8 +33,8 @@ export const CareerChronology: React.FC = () => {
       metric: '40% Retention Increase'
     },
     {
-      year: '2021 - 2025',
-      title: 'B.Sc. Software Systems (Integrated Track)',
+      year: '2021 - 2024',
+      title: 'B.Sc. Software Systems',
       category: 'Education',
       sub: 'Kongu Engineering College, TN, India',
       details: 'Completed rigorous curriculum covering Object-Oriented design, DBMS normalization, Operating Systems internals, Computer Networks, and Agile sprints. No standing arrears.',

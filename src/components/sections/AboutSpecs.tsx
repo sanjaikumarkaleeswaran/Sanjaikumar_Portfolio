@@ -4,7 +4,7 @@ import { ShieldCheck, GraduationCap, Cpu, Layers, MapPin } from 'lucide-react';
 export const AboutSpecs: React.FC = () => {
   const hardwareSpecs = [
     { label: 'NODE IDENTIFIER', val: 'SANJAIKUMAR P K', icon: <Cpu className="text-cyber-cyan" size={14} /> },
-    { label: 'ACADEMIC RECORD', val: 'B.Sc. Software Systems (2021-2025)', icon: <GraduationCap className="text-cyber-purple" size={14} /> },
+    { label: 'ACADEMIC RECORD', val: 'B.Sc. Software Systems (2021-2024)', icon: <GraduationCap className="text-cyber-purple" size={14} /> },
     { label: 'INSTITUTION', val: 'Kongu Engineering College, TN', icon: <Layers className="text-cyber-magenta" size={14} /> },
     { label: 'LOCATION INDEX', val: 'Coimbatore, India', icon: <MapPin className="text-cyber-green" size={14} /> }
   ];
@@ -46,7 +46,7 @@ export const AboutSpecs: React.FC = () => {
         <div className="p-5 border border-white/5 bg-slate-950/45 rounded-xl flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <h3 className="font-mono text-xs font-bold text-cyber-magenta uppercase tracking-wider">// EDUCATION_METRICS</h3>
-            <p className="font-mono text-[10px] text-slate-400">Bachelor of Science in Software Systems (5-year Integrated Program). Focused on algorithms, object-oriented systems, databases, web development, and cloud computing.</p>
+            <p className="font-mono text-[10px] text-slate-400">Bachelor of Science in Software Systems (3-year Undergraduate Program). Focused on algorithms, object-oriented systems, databases, web development, and cloud computing.</p>
           </div>
 
           <div className="p-4 border border-cyber-green/20 bg-cyber-green/5 rounded-lg flex items-center justify-between">

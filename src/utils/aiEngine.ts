@@ -19,7 +19,7 @@ const STATIC_DOCS: Omit<DocChunk, 'id'>[] = [
     category: 'experience',
     tags: ['experience', 'work', 'job', 'milestones', 'agile', 'sprints'],
     tech: ['React', 'TypeScript', 'Python', 'Docker', 'SQL', 'MongoDB'],
-    content: `Sanjaikumar Kaleeswaran completed a B.Sc. in Software Systems (Integrated 5-Year Track) at Kongu Engineering College (2021-2025) with a CGPA of 8.05/10.
+    content: `Sanjaikumar Kaleeswaran completed a B.Sc. in Software Systems at Kongu Engineering College (2021-2024) with a CGPA of 8.05/10.
 Key achievements:
 - Developed and optimized enterprise React and Python web apps.
 - Worked in Agile sprints, leading standups, participating in code reviews, and designing unit testing.
@@ -33,7 +33,7 @@ Key achievements:
     tech: ['Data Structures', 'DBMS', 'Operating Systems', 'Software Engineering', 'Networks'],
     content: `Degree: Bachelor of Science in Software Systems.
 Institution: Kongu Engineering College, Erode, Tamil Nadu, India.
-Duration: 2021 - 2025.
+Duration: 2021 - 2024.
 GPA: 8.05 / 10 (First Class Honors).
 Learned foundations: Data Structures, Database Management Systems (DBMS), Operating Systems, Software Engineering, Networks, and Cloud Infrastructure.`
   },

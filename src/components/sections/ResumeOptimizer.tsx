@@ -132,10 +132,10 @@ export const ResumeOptimizer: React.FC = () => {
       profile_summary: analysis.summary,
       matched_capabilities: analysis.matched.map(m => ({ skill: m.name, level: `${m.level}%`, category: m.category })),
       education: {
-        degree: "B.Sc. Software Systems (5-Year Track)",
+        degree: "B.Sc. Software Systems",
         institution: "Kongu Engineering College",
         gpa: "8.05/10",
-        duration: "2021-2025"
+        duration: "2021-2024"
       },
       aligned_engineering_projects: matchedProjects.map(p => ({
         title: p.title,
@@ -234,8 +234,8 @@ export const ResumeOptimizer: React.FC = () => {
           <h2>Academic Credentials</h2>
           <div class="section">
             <div class="edu-header">
-              <span>B.Sc. Software Systems (5-Year Track)</span>
-              <span>2021 - 2025</span>
+              <span>B.Sc. Software Systems</span>
+              <span>2021 - 2024</span>
             </div>
             <div style="font-style: italic; font-size: 11px;">Kongu Engineering College, Erode, Tamil Nadu</div>
             <div style="margin-top: 3px;">CGPA Rating: <strong>8.05 / 10</strong> (First Class Honors, No Arrears)</div>

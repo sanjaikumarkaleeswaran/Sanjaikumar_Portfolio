@@ -157,7 +157,7 @@ export const HeroDashboard: React.FC<{
             className="p-4.5 border border-white/5 rounded-xl bg-slate-950/50 backdrop-blur-md space-y-3 text-left"
           >
             <p className="text-slate-300 text-xs leading-relaxed font-sans">
-              B.Sc. Software Systems graduate (5-Year integrated track) from Kongu Engineering College. I specialize in building end-to-end full-stack architectures, context-aware AI tools (RAG pipelines, vector semantic matching), and Docker-orchestrated cloud systems.
+              B.Sc. Software Systems graduate (3-Year course) from Kongu Engineering College. I specialize in building end-to-end full-stack architectures, context-aware AI tools (RAG pipelines, vector semantic matching), and Docker-orchestrated cloud systems.
             </p>
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5 text-[9.5px]">
               <div>
@@ -288,8 +288,8 @@ export const HeroDashboard: React.FC<{
               <div className="text-[7.5px] text-slate-500 uppercase tracking-tight">College CGPA</div>
             </div>
             <div className="p-2 border border-white/5 bg-black/40 rounded-lg col-span-2 sm:col-span-1">
-              <div className="text-cyber-magenta font-bold text-xs">5 Yrs</div>
-              <div className="text-[7.5px] text-slate-500 uppercase tracking-tight">Learning Track</div>
+              <div className="text-cyber-magenta font-bold text-xs">3 Yrs</div>
+              <div className="text-[7.5px] text-slate-500 uppercase tracking-tight">Degree Course</div>
             </div>
           </div>
         </motion.div>

@@ -107,7 +107,7 @@ export const TerminalWindow: React.FC = () => {
       case 'experience':
         newHistory.push(
           { text: 'Consulting milestone chronology database...', type: 'system' },
-          { text: '2021 - 2025: B.Sc. Software Systems Integrated Degree (Kongu Engineering College)', type: 'info' },
+          { text: '2021 - 2024: B.Sc. Software Systems (Kongu Engineering College)', type: 'info' },
           { text: 'Key Projects: Built AI automation tools, database indexes, and responsive SaaS interfaces during collaborative Agile sprints.', type: 'info' }
         );
         break;
@@ -115,7 +115,7 @@ export const TerminalWindow: React.FC = () => {
       case 'education':
         newHistory.push(
           { text: 'Opening credentials verification...', type: 'system' },
-          { text: 'Graduated: 2025 (Bachelor of Science in Software Systems)', type: 'info' },
+          { text: 'Graduated: 2024 (Bachelor of Science in Software Systems)', type: 'info' },
           { text: 'Institution: Kongu Engineering College, Erode, Tamil Nadu', type: 'info' },
           { text: 'Academic Standing: CGPA 8.05 / 10 // First Class Honors // No arrears.', type: 'info' }
         );

@@ -166,7 +166,7 @@ A deep learning computer vision pipeline designed to generate text descriptions 
     content: `## Professional Experience & Milestones
 
 ### Overview
-Sanjaikumar completed a B.Sc. in Software Systems (Integrated 5-Year Track) at Kongu Engineering College (2021-2025).
+Sanjaikumar completed a B.Sc. in Software Systems at Kongu Engineering College (2021-2024).
 
 ### Milestones
 * **Full-Stack Projects**: Engineered robust Python APIs, Docker containers, and React frontends.
@@ -184,7 +184,7 @@ Sanjaikumar completed a B.Sc. in Software Systems (Integrated 5-Year Track) at K
 ### Details
 * **Degree**: Bachelor of Science in Software Systems.
 * **Institution**: Kongu Engineering College, Erode, Tamil Nadu, India.
-* **Duration**: 2021 - 2025.
+* **Duration**: 2021 - 2024.
 * **GPA**: 8.05 / 10 (First Class Honors).
 * **Skills Learned**: Data Structures, Database Management Systems (DBMS), Operating Systems, Software Engineering, Networks, and Cloud Infrastructure.
 `
