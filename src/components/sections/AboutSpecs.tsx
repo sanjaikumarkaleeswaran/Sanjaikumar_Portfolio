@@ -6,7 +6,7 @@ export const AboutSpecs: React.FC = () => {
     { label: 'NODE IDENTIFIER', val: 'SANJAIKUMAR P K', icon: <Cpu className="text-cyber-cyan" size={14} /> },
     { label: 'ACADEMIC RECORD', val: 'B.Sc. Software Systems (2021-2024)', icon: <GraduationCap className="text-cyber-purple" size={14} /> },
     { label: 'INSTITUTION', val: 'Kongu Engineering College, TN', icon: <Layers className="text-cyber-magenta" size={14} /> },
-    { label: 'LOCATION INDEX', val: 'Coimbatore, India', icon: <MapPin className="text-cyber-green" size={14} /> }
+    { label: 'LOCATION INDEX', val: 'Tiruppur, India', icon: <MapPin className="text-cyber-green" size={14} /> }
   ];
 
   return (

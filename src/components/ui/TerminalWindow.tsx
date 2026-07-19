@@ -80,7 +80,7 @@ export const TerminalWindow: React.FC = () => {
           { text: 'IDENTIFIER: Sanjaikumar P K', type: 'info' },
           { text: 'CLASS: Software Engineer // Full-Stack Developer', type: 'info' },
           { text: 'FOCUS: React + TypeScript Interfaces, Python (FastAPI/Django) APIs', type: 'info' },
-          { text: 'LOCATION: Coimbatore, Tamil Nadu, India', type: 'info' },
+          { text: 'LOCATION: Tiruppur, Tamil Nadu, India', type: 'info' },
           { text: 'MISSION: Build beautiful, high-efficiency, secure digital experiences.', type: 'info' }
         );
         break;
@@ -134,7 +134,7 @@ export const TerminalWindow: React.FC = () => {
           { text: 'Decrypting direct connection points:', type: 'success' },
           { text: 'Email: sanjaikumarkaleeswarann@gmail.com', type: 'info' },
           { text: 'Phone Node: +91-8667010490', type: 'info' },
-          { text: 'Address: Coimbatore, Tamil Nadu, India', type: 'info' }
+          { text: 'Address: Tiruppur, Tamil Nadu, India', type: 'info' }
         );
         break;
 

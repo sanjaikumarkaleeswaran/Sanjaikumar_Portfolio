@@ -137,7 +137,7 @@ export const HeroDashboard: React.FC<{
           >
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/5 bg-slate-950/40">
               <MapPin size={12} className="text-cyber-cyan shrink-0" />
-              <span><strong>Location:</strong> Coimbatore, TN, India</span>
+              <span><strong>Location:</strong> Tiruppur, TN, India</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/5 bg-slate-950/40">
               <Award size={12} className="text-cyber-purple shrink-0" />

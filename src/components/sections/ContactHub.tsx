@@ -107,7 +107,7 @@ export const ContactHub: React.FC = () => {
       ctx.closePath();
       ctx.fill();
 
-      // Blinking Target (Coimbatore position tracker)
+      // Blinking Target (Tiruppur position tracker)
       const targetX = cx + radius * 0.4;
       const targetY = cy - radius * 0.3;
       const blink = Math.sin(Date.now() * 0.007) * 0.5 + 0.5;
@@ -125,7 +125,7 @@ export const ContactHub: React.FC = () => {
       // Label
       ctx.fillStyle = '#00f0ff';
       ctx.font = '8px monospace';
-      ctx.fillText('COIMBATORE_NODE', targetX + 8, targetY + 3);
+      ctx.fillText('TIRUPPUR_NODE', targetX + 8, targetY + 3);
 
       angle += 0.015;
       animId = requestAnimationFrame(drawRadar);

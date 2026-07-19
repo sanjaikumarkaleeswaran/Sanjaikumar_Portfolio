@@ -200,7 +200,7 @@ export const ResumeOptimizer: React.FC = () => {
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <h1>SANJAIKUMAR P K</h1>
-              <div class="meta">Coimbatore, India | sanjaikumarpk2003@gmail.com | +91 95973 59918</div>
+              <div class="meta">Tiruppur, India | sanjaikumarpk2003@gmail.com | +91 95973 59918</div>
             </div>
             <div style="text-align: right; font-family: monospace; font-size: 10px; color: #777;">
               Tailored Resume Match Score: ${analysis.score}%<br/>

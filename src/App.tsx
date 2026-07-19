@@ -498,7 +498,7 @@ function AppContent() {
                   SANJAIKUMAR P K
                 </h1>
                 <p className="text-cyber-cyan text-xs tracking-wider font-semibold">
-                  FULL STACK & AI WEB ARCHITECT // COIMBATORE, TN
+                  FULL STACK & AI WEB ARCHITECT // TIRUPPUR, TN
                 </p>
               </div>
               <p className="text-slate-300 text-xs md:text-sm max-w-[750px] leading-relaxed font-sans">
