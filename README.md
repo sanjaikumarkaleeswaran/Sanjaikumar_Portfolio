@@ -114,5 +114,5 @@ The application includes a optimized multi-stage build:
 
 *   **Degree:** Bachelor of Science in Software Systems (3-year course)
 *   **Institution:** Kongu Engineering College, Erode, Tamil Nadu, India
-*   **Duration:** 2021 – 2024
-*   **Academic Standing:** CGPA 8.05 / 10 (First Class Honors, No Arrears)
+*   **Duration:** 2022 – 2025
+*   **Academic Standing:** CGPA 8.05 / 10
